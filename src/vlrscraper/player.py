@@ -45,7 +45,7 @@ class Player:
         return self.__current_team
 
     def get_name(self) -> str:
-        return ' '.join(self.__name)
+        return " ".join(self.__name)
 
     def get_image(self) -> str:
         return self.__image_src
@@ -55,4 +55,3 @@ class Player:
         data = Player.resource.get_data(_id)
         if not data["success"]:
             return None
-

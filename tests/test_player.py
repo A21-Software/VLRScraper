@@ -1,15 +1,23 @@
 from vlrscraper.player import Player
 
+
 def test_player_init():
-    benjy = Player(29873, "benjyfishy", 1001, "Benjamin", "Fish", "https://owcdn.net/img/665b77ca4bc4d.png")
+    benjy = Player(
+        29873,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+    )
     assert benjy.get_id() == 29873
     assert benjy.get_display_name() == "benjyfishy"
     assert benjy.get_current_team() == 1001
     assert benjy.get_name() == "Benjamin Fish"
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
 
-def test_player_get():
 
+def test_player_get():
     # Average player
     benjy = Player.get_player(29873)
     assert benjy.get_id() == 29873
