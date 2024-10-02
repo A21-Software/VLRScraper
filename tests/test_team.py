@@ -45,7 +45,7 @@ def test_getTeam():
         Player(
             1265,
             "johnqt",
-            2,
+            sen,
             "Mohamed",
             "Ouarid",
             "https://owcdn.net/img/65622aa13dc03.png",

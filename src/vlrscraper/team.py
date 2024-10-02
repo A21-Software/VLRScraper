@@ -84,15 +84,17 @@ class Team:
         )
 
         team.set_roster(
-            list([
-                Player(
-                    pid,
-                    player_aliases[i],
-                    team,
-                    *player_fullnames[i],
-                    image=player_images[i],
-                )
-                for i, pid in enumerate(player_ids)
-            ]),
+            list(
+                [
+                    Player(
+                        pid,
+                        player_aliases[i],
+                        team,
+                        *player_fullnames[i],
+                        image=player_images[i],
+                    )
+                    for i, pid in enumerate(player_ids)
+                ]
+            ),
         )
         return team
