@@ -4,6 +4,7 @@ Implements:
     - `XpathParser`, a class that can be used to scrape sites by xpath strings
     - `xpath`, a function that generates xpath strings based on the arguments passed
 """
+
 from typing import Optional
 
 from lxml import html
@@ -35,7 +36,9 @@ class XpathParser:
             html.HtmlElement: the HtmlElement at the desired XPATH
         """
         elem = self.content.xpath(xpath)
-        return elem[0] if elem else None
+        if isinstance(elem, list):
+            return elem[0] if elem else None
+        return None
 
     def get_elements(self, xpath: str, attr: str = "") -> list[html.HtmlElement]:
         """Gets a list of htmlElements that match a given XPATH
@@ -56,7 +59,7 @@ class XpathParser:
             else self.content.xpath(xpath)
         )
 
-    def get_img(self, xpath: str) -> Optional[str]:
+    def get_img(self, xpath: str) -> str:
         """Gets an image src from a given XPATH string
 
         Args:
@@ -65,9 +68,11 @@ class XpathParser:
         Returns:
             Optional[str]: the data contained in the `src` tag of the `HtmlElement` at the XPATH, or None if the src tag cannot be located.
         """
-        return self.get_element(xpath).get("src", "").strip() or None
+        if (element := self.get_element(xpath)) is None:
+            return ""
+        return element.get("src", "").strip()
 
-    def get_href(self, xpath: str) -> Optional[str]:
+    def get_href(self, xpath: str) -> str:
         """Gets an link href from a given XPATH string
 
         Args:
@@ -76,9 +81,11 @@ class XpathParser:
         Returns:
             Optional[str]: the data contained in the `href` tag of the `HtmlElement` at the XPATH, or None if the href tag cannot be located.
         """
-        return self.get_element(xpath).get("href", "").strip() or None
+        if (element := self.get_element(xpath)) is None:
+            return ""
+        return element.get("href", "").strip()
 
-    def get_text(self, xpath: str) -> Optional[str]:
+    def get_text(self, xpath: str) -> str:
         """Gets the inner text of the given XPATH
 
         Args:
@@ -91,10 +98,10 @@ class XpathParser:
         elem = self.get_element(xpath)
 
         # There is no text so return None
-        if elem == {} or not elem.text:
-            return None
+        if elem is None or (txt := elem.text) is None:
+            return ""
 
-        return elem.text.strip()
+        return txt.strip()
 
     def get_text_many(self, xpath: str) -> list[str]:
         elems = self.get_elements(xpath)
@@ -133,7 +140,7 @@ def xpath(elem: str, root: str = "", **kwargs) -> str:
     )
 
 
-def join(*xpath: list[str]) -> str:
+def join(*xpath: str) -> str:
     """Create an xpath that is the combination of the xpaths provided
     Performs a similar function to os.path.join()
 
