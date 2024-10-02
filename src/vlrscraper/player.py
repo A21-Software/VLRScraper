@@ -38,12 +38,11 @@ class Player:
         self.__image_src = image
         self.__status = status
 
-    def __eq__(self, other: Player) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Player)
             and self.get_id() == other.get_id()
             and self.get_display_name() == other.get_display_name()
-            and self.get_current_team() == other.get_current_team()
             and self.get_name() == other.get_name()
             and self.get_image() == other.get_image()
             and self.get_status() == other.get_status()
@@ -58,7 +57,7 @@ class Player:
     def get_display_name(self) -> str:
         return self.__displayname
 
-    def get_current_team(self) -> int:
+    def get_current_team(self) -> Team:
         return self.__current_team
 
     def get_name(self) -> str:

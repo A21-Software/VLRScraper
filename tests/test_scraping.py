@@ -55,7 +55,7 @@ def test_xpathParser():
         == "//owcdn.net/img/665b77ca4bc4d.png"
     )
 
-    assert parser.get_text(xpath("img", root=xpath("div", class_="mod-player"))) is None
+    assert parser.get_text(xpath("img", root=xpath("div", class_="mod-player"))) == ""
 
     with pytest.raises(TypeError):
         XpathParser("skibidi sigma")

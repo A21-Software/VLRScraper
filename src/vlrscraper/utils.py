@@ -9,7 +9,7 @@ Implements:
 from datetime import datetime
 
 
-def parse_first_last_name(name: str) -> tuple[str]:
+def parse_first_last_name(name: str) -> tuple[str, str]:
     names = name.split(" ")
     # Get rid of non-ascii names (ie korean names)
     if names[-1].startswith("("):

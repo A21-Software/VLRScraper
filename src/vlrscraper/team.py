@@ -22,14 +22,13 @@ class Team:
         self.__logo = logo
         self.__roster = roster
 
-    def __eq__(self, other: Team) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Team)
             and self.get_id() == other.get_id()
             and self.get_name() == other.get_name()
             and self.get_tag() == other.get_tag()
             and self.get_logo() == other.get_logo()
-            and self.get_roster() == other.get_roster()
         )
 
     def __repr__(self) -> str:
@@ -49,6 +48,9 @@ class Team:
 
     def get_roster(self) -> list[Player]:
         return self.__roster
+
+    def set_roster(self, roster: list[Player]) -> None:
+        self.__roster = roster
 
     @staticmethod
     def get_team(_id: int) -> Optional[Team]:
@@ -74,19 +76,25 @@ class Team:
 
         from vlrscraper.player import Player
 
-        return Team(
+        team = Team(
             _id,
             parser.get_text(const.TEAM_DISPLAY_NAME),
             parser.get_text(const.TEAM_TAG),
             f"https:{parser.get_img(const.TEAM_IMG)}",
-            [
-                Player(
-                    pid,
-                    player_aliases[i],
-                    _id,
-                    *player_fullnames[i],
-                    image=player_images[i],
-                )
-                for i, pid in enumerate(player_ids)
-            ],
         )
+
+        team.set_roster(
+            list(
+                [
+                    Player(
+                        pid,
+                        player_aliases[i],
+                        team,
+                        *player_fullnames[i],
+                        image=player_images[i],
+                    )
+                    for i, pid in enumerate(player_ids)
+                ]
+            ),
+        )
+        return team
