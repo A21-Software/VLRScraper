@@ -1,7 +1,11 @@
 from __future__ import annotations
 from typing import Optional
 
+import vlrscraper.constants as const
+
 from .resource import Resource
+from .scraping import XpathParser
+from .utils import get_url_segment
 
 
 class Player:
@@ -25,11 +29,11 @@ class Player:
     def __eq__(self, other: Player) -> bool:
         return (
             isinstance(other, Player)
-            and self.__id == other.get_id()
-            and self.__displayname == other.get_display_name()
-            and self.__current_team == other.get_current_team()
-            and self.__name == other.get_name()
-            and self.__image_src == other.get_image()
+            and self.get_id() == other.get_id()
+            and self.get_display_name() == other.get_display_name()
+            and self.get_current_team() == other.get_current_team()
+            and self.get_name() == other.get_name()
+            and self.get_image() == other.get_image()
         )
 
     def __repr__(self) -> str:
@@ -55,3 +59,20 @@ class Player:
         data = Player.resource.get_data(_id)
         if not data["success"]:
             return None
+
+        parser = XpathParser(data["data"])
+
+        player_name = parser.get_text(const.PLAYER_FULLNAME).split(" ")
+
+        # Get rid of non-ascii names (ie korean names)
+        if player_name[-1].startswith("("):
+            player_name.pop(-1)
+
+        return Player(
+            _id,
+            parser.get_text(const.PLAYER_DISPLAYNAME),
+            get_url_segment(parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int),
+            player_name[0],
+            player_name[-1],
+            f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}",
+        )

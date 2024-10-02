@@ -17,6 +17,42 @@ def test_player_init():
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
 
 
+def test_player_equals():
+    benjy = Player(
+        29873,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+    )
+    assert benjy == benjy
+    assert benjy != 1
+
+    benjy2 = Player(
+        298731,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+    )
+
+    assert benjy != benjy2
+
+
+def test_string():
+    benjy = Player(
+        29873,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+    )
+    assert str(benjy) == "benjyfishy (Benjamin Fish)"
+
+
 def test_player_get():
     # Average player
     benjy = Player.get_player(29873)
@@ -33,3 +69,8 @@ def test_player_get():
     assert crappy.get_current_team() == 14
     assert crappy.get_name() == "Lee Jae-hyeok"
     assert crappy.get_image() == "https://owcdn.net/img/65cc6f0f4da99.png"
+
+    # Bad player very bad
+    assert Player.get_player(None) is None
+    assert Player.get_player(31207.0) is None
+    assert Player.get_player("1000") is None
