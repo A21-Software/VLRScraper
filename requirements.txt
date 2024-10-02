@@ -15,6 +15,5 @@ PyYAML==6.0.2
 requests==2.32.3
 urllib3==2.2.3
 vcrpy==6.0.1
--e git+https://github.com/A21-Software/VLRScraper@2812a80d107e9af69e07d3000eb4c55c4a1cbf35#egg=vlr_scraper
 wrapt==1.16.0
 yarl==1.13.1
