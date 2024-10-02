@@ -4,9 +4,9 @@ from enum import IntEnum
 
 import vlrscraper.constants as const
 
-from .resource import Resource
-from .scraping import XpathParser, join
-from .utils import get_url_segment, parse_first_last_name
+from vlrscraper.resource import Resource
+from vlrscraper.scraping import XpathParser, join
+from vlrscraper.utils import get_url_segment, parse_first_last_name
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
