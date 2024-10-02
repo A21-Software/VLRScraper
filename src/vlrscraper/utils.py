@@ -9,6 +9,14 @@ Implements:
 from datetime import datetime
 
 
+def parse_first_last_name(name: str) -> tuple[str]:
+    names = name.split(" ")
+    # Get rid of non-ascii names (ie korean names)
+    if names[-1].startswith("("):
+        names.pop(-1)
+    return names[0], names[-1]
+
+
 def get_url_segment(url: str, index: int, rtype: type = str):
     """Isolate the segment of the given url at the index supplied\n
     The `rtype` parameter can be specified to automatically cast the return value,
