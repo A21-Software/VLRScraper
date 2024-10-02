@@ -106,7 +106,10 @@ class XpathParser:
     def get_text_many(self, xpath: str) -> list[str]:
         elems = self.get_elements(xpath)
 
-        return [elem.text_content().strip() for elem in elems]
+        return [
+            elem.text_content().replace("\t", "").replace("\n", "").strip()
+            for elem in elems
+        ]
 
 
 def xpath(elem: str, root: str = "", **kwargs) -> str:

@@ -5,11 +5,15 @@ from dataclasses import dataclass
 from lxml import html
 
 from vlrscraper.resource import Resource
+from vlrscraper.logger import get_logger
 from vlrscraper import constants as const
 from vlrscraper.scraping import XpathParser
+from vlrscraper.utils import get_url_segment, epoch_from_timestamp
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
+
+_logger = get_logger()
 
 
 @dataclass
@@ -25,8 +29,7 @@ class MatchStats:
     HS: int
     FK: int
     FD: int
-    plants: int
-    defuses: int
+    FKFD: int
 
 
 class Match:
@@ -80,20 +83,43 @@ class Match:
     def get_date(self) -> float:
         return self.__epoch
 
+    @staticmethod
+    def __perc(val: str) -> int:
+        return int(val.replace("%", ""))
+
+    @staticmethod
     def __parse_match_stats(
         players: list[int], stats: list[html.HtmlElement]
     ) -> dict[int, MatchStats]:
-        if len(stats) // 14 != 0:
+        if len(stats) % 12 != 0:
+            _logger.warning(f"Wrong amount of stats passed ({len(stats)})")
             return []
-        stats = {}
-        TO_LOAD = [float, int, int, int, int, int, int, int, int, int, int, int]
+        player_stats = {}
+        TO_LOAD = [
+            float,
+            int,
+            int,
+            int,
+            int,
+            int,
+            Match.__perc,
+            int,
+            Match.__perc,
+            int,
+            int,
+            int,
+        ]
         for i, player in enumerate(players):
-            indexes = range(i * 14, (i + 1) * 14)
+            indexes = range(i * 12, (i + 1) * 12)
 
-            stats.update(
-                {player: MatchStats(*[TO_LOAD(stats[stat].text) for stat in indexes])}
+            player_stats.update(
+                {
+                    player: MatchStats(
+                        *[TO_LOAD[stat % 12](stats[stat].text) for stat in indexes]
+                    )
+                }
             )
-        return stats
+        return player_stats
 
     @staticmethod
     def get_match(_id: int) -> Optional[Match]:
@@ -104,15 +130,23 @@ class Match:
 
         parser = XpathParser(data["data"])
 
-        match_players = parser.get_text_many(const.MATCH_PLAYER_TABLE)
+        match_players = [
+            get_url_segment(x, 2, rtype=int)
+            for x in parser.get_elements(const.MATCH_PLAYER_TABLE, "href")
+        ]
         match_stats = parser.get_elements(const.MATCH_PLAYER_STATS)
         match_stats_parsed = Match.__parse_match_stats(match_players, match_stats)
-        print(match_stats_parsed)
+        _logger.info(match_stats_parsed)
 
         match = Match(
             _id,
             parser.get_text(const.MATCH_NAME),
             parser.get_text(const.MATCH_EVENT_NAME),
+            epoch_from_timestamp(
+                parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0],
+                "01:01:1970 00:00:00 -0000",
+            ),
+            (),
         )
 
         return match
