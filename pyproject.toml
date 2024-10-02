@@ -1,0 +1,16 @@
+[project]
+name = "vlr-scraper"
+version = '0.0.1'
+authors = [
+    { name = "Joe Paton", email = "joantpat@gmail.com" },
+]
+description = "vlrscraper - Scrape data from vlr seamlessly"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
