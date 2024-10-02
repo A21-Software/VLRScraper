@@ -6,7 +6,7 @@ import vlrscraper.constants as const
 
 from .resource import Resource
 from .scraping import XpathParser
-from .utils import get_url_segment
+from .utils import get_url_segment, parse_first_last_name
 
 
 class PlayerStatus(IntEnum):
@@ -47,7 +47,7 @@ class Player:
         )
 
     def __repr__(self) -> str:
-        return f"{self.__displayname} ({' '.join(self.__name)})"
+        return f"{self.get_display_name()} ({self.get_name()}) [{self.get_image()}]"
 
     def get_id(self) -> int:
         return self.__id
@@ -75,11 +75,7 @@ class Player:
 
         parser = XpathParser(data["data"])
 
-        player_name = parser.get_text(const.PLAYER_FULLNAME).split(" ")
-
-        # Get rid of non-ascii names (ie korean names)
-        if player_name[-1].startswith("("):
-            player_name.pop(-1)
+        player_name = parse_first_last_name(parser.get_text(const.PLAYER_FULLNAME))
 
         return Player(
             _id,
