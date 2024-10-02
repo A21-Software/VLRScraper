@@ -50,7 +50,7 @@ class Resource:
 
         response = requests.get(url)
         return (
-            ResourceResponse.success(response.json() if json else response.text)
+            ResourceResponse.success(response.json() if json else response.content)
             if response.status_code == 200
             else ResourceResponse.request_refused(url, response.status_code)
         )
