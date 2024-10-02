@@ -1,11 +1,18 @@
 from __future__ import annotations
 from typing import Optional
+from enum import IntEnum
 
 import vlrscraper.constants as const
 
 from .resource import Resource
 from .scraping import XpathParser
 from .utils import get_url_segment
+
+
+class PlayerStatus(IntEnum):
+    INACTIVE = 1
+    ACTIVE = 2
+    SUB = 3
 
 
 class Player:
@@ -19,12 +26,14 @@ class Player:
         forename: str = "",
         surname: str = "",
         image: str = "",
+        status: PlayerStatus = PlayerStatus.ACTIVE,
     ) -> None:
         self.__id = _id
         self.__displayname = name
         self.__current_team = current_team
         self.__name = (forename, surname)
         self.__image_src = image
+        self.__status = status
 
     def __eq__(self, other: Player) -> bool:
         return (
@@ -34,6 +43,7 @@ class Player:
             and self.get_current_team() == other.get_current_team()
             and self.get_name() == other.get_name()
             and self.get_image() == other.get_image()
+            and self.get_status() == other.get_status()
         )
 
     def __repr__(self) -> str:
@@ -53,6 +63,9 @@ class Player:
 
     def get_image(self) -> str:
         return self.__image_src
+
+    def get_status(self) -> PlayerStatus:
+        return self.__status
 
     @staticmethod
     def get_player(_id: int) -> Optional[Player]:
@@ -75,4 +88,7 @@ class Player:
             player_name[0],
             player_name[-1],
             f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}",
+            PlayerStatus.ACTIVE
+            if len(parser.get_elements(const.PLAYER_INACTIVE_CHECK)) <= 2
+            else PlayerStatus.INACTIVE,
         )
