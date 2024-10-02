@@ -1,0 +1,20 @@
+certifi==2024.8.30
+charset-normalizer==3.3.2
+colorama==0.4.6
+coverage==7.6.1
+idna==3.10
+iniconfig==2.0.0
+lxml==5.3.0
+multidict==6.1.0
+packaging==24.1
+pluggy==1.5.0
+pytest==8.3.3
+pytest-cov==5.0.0
+pytest-recording==0.13.2
+PyYAML==6.0.2
+requests==2.32.3
+urllib3==2.2.3
+vcrpy==6.0.1
+-e git+https://github.com/A21-Software/VLRScraper@2812a80d107e9af69e07d3000eb4c55c4a1cbf35#egg=vlr_scraper
+wrapt==1.16.0
+yarl==1.13.1

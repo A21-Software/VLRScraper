@@ -7,6 +7,13 @@ authors = [
 description = "vlrscraper - Scrape data from vlr seamlessly"
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = [
+    "lxml",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
 
 [build-system]
 requires = ["setuptools >= 61.0"]
