@@ -14,7 +14,7 @@ class XpathParser:
     directly from data returned from a `requests.get()` call
     """
 
-    def __init__(self, data: bytes | html.HtmlElement) -> None:
+    def __init__(self, data: bytes) -> None:
         """Creates a parser that is capable of taking XPATH's and returning desired objects
 
         Args:
@@ -22,8 +22,6 @@ class XpathParser:
         """
         if isinstance(data, bytes):
             self.content = html.fromstring(data)
-        elif isinstance(data, html.HtmlElement):
-            self.content = data
         else:
             raise TypeError("Data must be either string or HtmlElement")
 
