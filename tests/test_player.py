@@ -55,7 +55,10 @@ def test_string():
         "https://owcdn.net/img/665b77ca4bc4d.png",
         PlayerStatus.ACTIVE,
     )
-    assert str(benjy) == "benjyfishy (Benjamin Fish)"
+    assert (
+        str(benjy)
+        == "benjyfishy (Benjamin Fish) [https://owcdn.net/img/665b77ca4bc4d.png]"
+    )
 
 
 def test_player_get():

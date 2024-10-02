@@ -14,13 +14,18 @@ class XpathParser:
     directly from data returned from a `requests.get()` call
     """
 
-    def __init__(self, data: str) -> None:
+    def __init__(self, data: bytes | html.HtmlElement) -> None:
         """Creates a parser that is capable of taking XPATH's and returning desired objects
 
         Args:
             url (str): The url of the website to parse
         """
-        self.content = html.fromstring(data)
+        if isinstance(data, bytes):
+            self.content = html.fromstring(data)
+        elif isinstance(data, html.HtmlElement):
+            self.content = data
+        else:
+            raise TypeError("Data must be either string or HtmlElement")
 
     def get_element(self, xpath: str) -> Optional[html.HtmlElement]:
         """Gets a single HTML element from an XPATH string
@@ -92,6 +97,11 @@ class XpathParser:
             return None
 
         return elem.text.strip()
+
+    def get_text_many(self, xpath: str) -> list[str]:
+        elems = self.get_elements(xpath)
+
+        return [elem.text_content().strip() for elem in elems]
 
 
 def xpath(elem: str, root: str = "", **kwargs) -> str:
