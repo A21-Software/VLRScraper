@@ -1,12 +1,15 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from enum import IntEnum
 
 import vlrscraper.constants as const
 
 from .resource import Resource
-from .scraping import XpathParser
+from .scraping import XpathParser, join
 from .utils import get_url_segment, parse_first_last_name
+
+if TYPE_CHECKING:
+    from vlrscraper.team import Team
 
 
 class PlayerStatus(IntEnum):
@@ -22,7 +25,7 @@ class Player:
         self,
         _id: int,
         name: str,
-        current_team: int,
+        current_team: Team,
         forename: str = "",
         surname: str = "",
         image: str = "",
@@ -77,10 +80,22 @@ class Player:
 
         player_name = parse_first_last_name(parser.get_text(const.PLAYER_FULLNAME))
 
+        from vlrscraper.team import Team
+
+        team_id = get_url_segment(
+            parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int
+        )
+
+        imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
+        namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
+
+        team_image = f"https:{parser.get_img(imgpath)}"
+        team_name = parser.get_text(namepath)
+
         return Player(
             _id,
             parser.get_text(const.PLAYER_DISPLAYNAME),
-            get_url_segment(parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int),
+            Team(team_id, team_name, "", logo=team_image),
             player_name[0],
             player_name[-1],
             f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}",
