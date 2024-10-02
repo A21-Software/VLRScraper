@@ -22,6 +22,19 @@ class Team:
         self.__logo = logo
         self.__roster = roster
 
+    def __eq__(self, other: Team) -> bool:
+        return (
+            isinstance(other, Team)
+            and self.get_id() == other.get_id()
+            and self.get_name() == other.get_name()
+            and self.get_tag() == other.get_tag()
+            and self.get_logo() == other.get_logo()
+            and self.get_roster() == other.get_roster()
+        )
+
+    def __repr__(self) -> str:
+        return f"{self.get_name()} / {self.get_tag()}, [{self.get_logo()}]"
+
     def get_id(self) -> int:
         return self.__id
 
