@@ -1,3 +1,5 @@
+import pytest
+
 import requests
 
 from vlrscraper.scraping import xpath, XpathParser, join
@@ -54,3 +56,6 @@ def test_xpathParser():
     )
 
     assert parser.get_text(xpath("img", root=xpath("div", class_="mod-player"))) is None
+
+    with pytest.raises(TypeError):
+        XpathParser("skibidi sigma")

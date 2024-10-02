@@ -14,6 +14,25 @@ def test_team_init():
     assert sen.get_roster() == []
 
 
+def test_teamEq():
+    sen = Team(2, "Sentinels", "SEN", "https://owcdn.net/img/62875027c8e06.png", [])
+
+    assert sen == sen
+
+    sen2 = Team(2, "Sentinels", "SEN", "https://owcdn.net/img/62875027c8e06.png", [])
+
+    assert sen == sen2
+
+    sen3 = Team(2, "Heretics", "SEN", "https://owcdn.net/img/62875027c8e06.png", [])
+
+    assert sen != sen3
+
+
+def test_teamRepr():
+    sen = Team(2, "Sentinels", "SEN", "https://owcdn.net/img/62875027c8e06.png", [])
+    assert str(sen) == "Sentinels / SEN, [https://owcdn.net/img/62875027c8e06.png]"
+
+
 def test_getTeam():
     # Valid team
     sen = Team.get_team(2)
