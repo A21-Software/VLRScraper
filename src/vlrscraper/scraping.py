@@ -133,7 +133,7 @@ def xpath(elem: str, root: str = "", **kwargs) -> str:
     )
 
 
-def join(*xpath: list[str]) -> str:
+def join(*xpath: str) -> str:
     """Create an xpath that is the combination of the xpaths provided
     Performs a similar function to os.path.join()
 
