@@ -1,4 +1,4 @@
-from vlrscraper.player import Player
+from vlrscraper.player import Player, PlayerStatus
 
 
 def test_player_init():
@@ -9,12 +9,14 @@ def test_player_init():
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
     )
     assert benjy.get_id() == 29873
     assert benjy.get_display_name() == "benjyfishy"
     assert benjy.get_current_team() == 1001
     assert benjy.get_name() == "Benjamin Fish"
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
+    assert benjy.get_status() == PlayerStatus.ACTIVE
 
 
 def test_player_equals():
@@ -25,6 +27,7 @@ def test_player_equals():
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
     )
     assert benjy == benjy
     assert benjy != 1
@@ -36,6 +39,7 @@ def test_player_equals():
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
     )
 
     assert benjy != benjy2
@@ -49,6 +53,7 @@ def test_string():
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
     )
     assert str(benjy) == "benjyfishy (Benjamin Fish)"
 
@@ -61,6 +66,7 @@ def test_player_get():
     assert benjy.get_current_team() == 1001
     assert benjy.get_name() == "Benjamin Fish"
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
+    assert benjy.get_status() == PlayerStatus.ACTIVE
 
     # Player with non-latin characters in name
     crappy = Player.get_player(31207)
@@ -69,8 +75,12 @@ def test_player_get():
     assert crappy.get_current_team() == 14
     assert crappy.get_name() == "Lee Jae-hyeok"
     assert crappy.get_image() == "https://owcdn.net/img/65cc6f0f4da99.png"
+    assert crappy.get_status() == PlayerStatus.ACTIVE
 
     # Bad player very bad
     assert Player.get_player(None) is None
     assert Player.get_player(31207.0) is None
     assert Player.get_player("1000") is None
+
+    # Inactive player
+    assert Player.get_player(45).get_status() == PlayerStatus.INACTIVE
