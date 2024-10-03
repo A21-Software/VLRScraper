@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 class PlayerStatus(IntEnum):
     INACTIVE = 1
     ACTIVE = 2
-    SUB = 3
 
 
 class Player:
@@ -26,10 +25,10 @@ class Player:
         _id: int,
         name: str,
         current_team: Team,
-        forename: str = "",
-        surname: str = "",
-        image: str = "",
-        status: PlayerStatus = PlayerStatus.ACTIVE,
+        forename: str,
+        surname: str,
+        image: str,
+        status: PlayerStatus,
     ) -> None:
         self.__id = _id
         self.__displayname = name
@@ -37,6 +36,7 @@ class Player:
         self.__name = (forename, surname)
         self.__image_src = image
         self.__status = status
+        self.__fully_scraped = False
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -69,6 +69,44 @@ class Player:
     def get_status(self) -> PlayerStatus:
         return self.__status
 
+    def is_fully_scraped(self) -> bool:
+        return self.__fully_scraped
+
+    def set_fully_scraped(self, scraped: bool) -> None:
+        self.__fully_scraped = scraped
+
+    @staticmethod
+    def from_player_page(
+        _id: int,
+        display_name: str,
+        forename: str,
+        surname: str,
+        current_team: Team,
+        image: str,
+        status: PlayerStatus,
+    ) -> Player:
+        player = Player(
+            _id, display_name, current_team, forename, surname, image, status
+        )
+        player.set_fully_scraped(True)
+        return player
+
+    @staticmethod
+    def from_team_page(
+        _id: int,
+        display_name: str,
+        forename: str,
+        surname: str,
+        current_team: Team,
+        image: str,
+        status: PlayerStatus,
+    ) -> Player:
+        player = Player(
+            _id, display_name, current_team, forename, surname, image, status
+        )
+        player.set_fully_scraped(True)
+        return player
+
     @staticmethod
     def get_player(_id: int) -> Optional[Player]:
         data = Player.resource.get_data(_id)
@@ -91,12 +129,12 @@ class Player:
         team_image = f"https:{parser.get_img(imgpath)}"
         team_name = parser.get_text(namepath)
 
-        return Player(
+        return Player.from_player_page(
             _id,
             parser.get_text(const.PLAYER_DISPLAYNAME),
-            Team(team_id, team_name, "", logo=team_image),
             player_name[0],
             player_name[-1],
+            Team.from_player_page(team_id, team_name, team_image),
             f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}",
             PlayerStatus.ACTIVE
             if len(parser.get_elements(const.PLAYER_INACTIVE_CHECK)) <= 2
