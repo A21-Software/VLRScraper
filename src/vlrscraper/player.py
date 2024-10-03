@@ -3,7 +3,7 @@ from typing import Optional, TYPE_CHECKING
 from enum import IntEnum
 
 import vlrscraper.constants as const
-
+from vlrscraper.logger import get_logger
 from vlrscraper.resource import Resource
 from vlrscraper.scraping import XpathParser, join
 from vlrscraper.utils import get_url_segment, parse_first_last_name
@@ -15,6 +15,12 @@ if TYPE_CHECKING:
 class PlayerStatus(IntEnum):
     INACTIVE = 1
     ACTIVE = 2
+
+    def __repr__(self) -> str:
+        return self.name
+
+
+_logger = get_logger()
 
 
 class Player:
@@ -30,50 +36,53 @@ class Player:
         image: Optional[str],
         status: Optional[PlayerStatus],
     ) -> None:
+        if not isinstance(_id, int) or _id <= 0:
+            raise ValueError("Player ID must be an integer {0 < ID}")
+
         self.__id = _id
         self.__displayname = name
         self.__current_team = current_team
-        self.__name = (forename, surname) if forename or surname else ()
+        self.__name = (
+            tuple(filter(lambda x: x is not None, (forename, surname))) or None
+        )
         self.__image_src = image
         self.__status = status
-        self.__fully_scraped = False
 
     def __eq__(self, other: object) -> bool:
+        _logger.warning(
+            "Avoid using inbuilt equality for Players. See Player.is_same_player()"
+        )
+        return self == other
+
+    def __repr__(self) -> str:
+        return f"Player({self.get_id()}, {self.get_display_name()}, {self.get_name()}, {self.get_image()}, {self.get_current_team()}, {self.get_status().name if self.get_status() else None})"
+
+    def get_id(self) -> int:
+        return self.__id
+
+    def get_display_name(self) -> Optional[str]:
+        return self.__displayname
+
+    def get_current_team(self) -> Optional[Team]:
+        return self.__current_team
+
+    def get_name(self) -> Optional[str]:
+        return " ".join(self.__name) if self.__name is not None else None
+
+    def get_image(self) -> Optional[str]:
+        return self.__image_src
+
+    def get_status(self) -> Optional[PlayerStatus]:
+        return self.__status
+
+    def is_same_player(self, other: object) -> bool:
         return (
             isinstance(other, Player)
             and self.get_id() == other.get_id()
             and self.get_display_name() == other.get_display_name()
             and self.get_name() == other.get_name()
             and self.get_image() == other.get_image()
-            and self.get_status() == other.get_status()
         )
-
-    def __repr__(self) -> str:
-        return f"{self.get_display_name()} ({self.get_name()}) [{self.get_image()}]"
-
-    def get_id(self) -> int:
-        return self.__id
-
-    def get_display_name(self) -> str:
-        return self.__displayname
-
-    def get_current_team(self) -> Team:
-        return self.__current_team
-
-    def get_name(self) -> str:
-        return " ".join(self.__name)
-
-    def get_image(self) -> str:
-        return self.__image_src
-
-    def get_status(self) -> PlayerStatus:
-        return self.__status
-
-    def is_fully_scraped(self) -> bool:
-        return self.__fully_scraped
-
-    def set_fully_scraped(self, scraped: bool) -> None:
-        self.__fully_scraped = scraped
 
     @staticmethod
     def from_player_page(
@@ -85,11 +94,7 @@ class Player:
         image: str,
         status: PlayerStatus,
     ) -> Player:
-        player = Player(
-            _id, display_name, current_team, forename, surname, image, status
-        )
-        player.set_fully_scraped(True)
-        return player
+        return Player(_id, display_name, current_team, forename, surname, image, status)
 
     @staticmethod
     def from_team_page(
@@ -101,11 +106,7 @@ class Player:
         image: str,
         status: PlayerStatus,
     ) -> Player:
-        player = Player(
-            _id, display_name, current_team, forename, surname, image, status
-        )
-        player.set_fully_scraped(True)
-        return player
+        return Player(_id, display_name, current_team, forename, surname, image, status)
 
     @staticmethod
     def from_match_page(_id: int, display_name: str) -> Player:
@@ -123,9 +124,7 @@ class Player:
         Player
             _description_
         """
-        player = Player(_id, display_name, None, None, None, None, None)
-        player.set_fully_scraped(False)
-        return player
+        return Player(_id, display_name, None, None, None, None, None)
 
     @staticmethod
     def get_player(_id: int) -> Optional[Player]:

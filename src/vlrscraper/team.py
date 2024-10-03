@@ -1,13 +1,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
-from .resource import Resource
-from .scraping import XpathParser
-from .utils import get_url_segment, parse_first_last_name
+from vlrscraper.logger import get_logger
+from vlrscraper.resource import Resource
 from vlrscraper import constants as const
+from vlrscraper.scraping import XpathParser
+from vlrscraper.utils import get_url_segment, parse_first_last_name
+
 
 if TYPE_CHECKING:
     from vlrscraper.player import Player
+
+_logger = get_logger()
 
 
 class Team:
@@ -27,15 +31,54 @@ class Team:
         self.__logo = logo
         self.__roster = roster
 
-        self.__fully_scraped = True
-
     def __eq__(self, other: object) -> bool:
+        _logger.warning(
+            "Avoid using inbuilt equality for Team. See Team.is_same_team() and Team.is_same_roster()"
+        )
+        return self == other
+
+    def is_same_team(self, other: object) -> bool:
+        """Check if this team's org is the same organization as the other team.
+
+        Purely checks attributes related to the actual organization itself (ID, name, tag, logo) rather than
+        attributes that change over time such as roster
+
+        Parameters
+        ----------
+        other : object
+            The other team to check
+
+        Returns
+        -------
+        bool
+            `True` if all attributes (ID, name, tag, logo) match, else `False`
+        """
         return (
             isinstance(other, Team)
-            and self.get_id() == other.get_id()
-            and self.get_name() == other.get_name()
-            and self.get_tag() == other.get_tag()
-            and self.get_logo() == other.get_logo()
+            and self.__id == other.__id
+            and self.__name == other.__name
+            and self.__tag == other.__tag
+        )
+
+    def has_same_roster(self, other: object) -> bool:
+        """Check if all of the players / staff on this team are the same as the other team
+
+        Does not include the player's current team in the equality check, only whether
+        the roster contains the same actual players
+
+        Parameters
+        ----------
+        other : object
+            The other team to check
+
+        Returns
+        -------
+        bool
+            _description_
+        """
+        return all(
+            [p.is_same_player(other.get_roster()[i])]
+            for i, p in enumerate(self.__roster)
         )
 
     def __repr__(self) -> str:
@@ -94,12 +137,6 @@ class Team:
     def set_roster(self, roster: list[Player]) -> None:
         self.__roster = roster
 
-    def set_fully_scraped(self, scraped: bool) -> None:
-        self.__fully_scraped = scraped
-
-    def get_fully_scraped(self) -> bool:
-        return self.__fully_scraped
-
     @staticmethod
     def from_team_page(
         _id: int, name: str, tag: str, logo: str, roster: list[Player]
@@ -124,9 +161,7 @@ class Team:
         Team
             The team object created using the given values
         """
-        team = Team(_id, name, tag, logo, roster)
-        team.set_fully_scraped(True)
-        return team
+        return Team(_id, name, tag, logo, roster)
 
     @staticmethod
     def from_player_page(_id: int, name: str, logo: str) -> Team:
@@ -148,17 +183,13 @@ class Team:
         Team
             The team object created using the given values
         """
-        team = Team(_id, name=name, tag=None, logo=logo, roster=None)
-        team.set_fully_scraped(False)
-        return team
+        return Team(_id, name=name, tag=None, logo=logo, roster=None)
 
     @staticmethod
     def from_match_page(
         _id: int, name: str, tag: str, logo: str, roster: list[Player]
     ) -> Team:
-        team = Team(_id, name, tag, logo, roster)
-        team.set_fully_scraped(True)
-        return team
+        return Team(_id, name, tag, logo, roster)
 
     @staticmethod
     def get_team(_id: int) -> Optional[Team]:
