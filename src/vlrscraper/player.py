@@ -4,9 +4,9 @@ from enum import IntEnum
 
 import vlrscraper.constants as const
 
-from .resource import Resource
-from .scraping import XpathParser, join
-from .utils import get_url_segment, parse_first_last_name
+from vlrscraper.resource import Resource
+from vlrscraper.scraping import XpathParser, join
+from vlrscraper.utils import get_url_segment, parse_first_last_name
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
@@ -23,17 +23,17 @@ class Player:
     def __init__(
         self,
         _id: int,
-        name: str,
-        current_team: Team,
-        forename: str,
-        surname: str,
-        image: str,
-        status: PlayerStatus,
+        name: Optional[str],
+        current_team: Optional[Team],
+        forename: Optional[str],
+        surname: Optional[str],
+        image: Optional[str],
+        status: Optional[PlayerStatus],
     ) -> None:
         self.__id = _id
         self.__displayname = name
         self.__current_team = current_team
-        self.__name = (forename, surname)
+        self.__name = (forename, surname) if forename or surname else ()
         self.__image_src = image
         self.__status = status
         self.__fully_scraped = False
@@ -105,6 +105,26 @@ class Player:
             _id, display_name, current_team, forename, surname, image, status
         )
         player.set_fully_scraped(True)
+        return player
+
+    @staticmethod
+    def from_match_page(_id: int, display_name: str) -> Player:
+        """_summary_
+
+        Parameters
+        ----------
+        _id : int
+            _description_
+        display_name : str
+            _description_
+
+        Returns
+        -------
+        Player
+            _description_
+        """
+        player = Player(_id, display_name, None, None, None, None, None)
+        player.set_fully_scraped(False)
         return player
 
     @staticmethod

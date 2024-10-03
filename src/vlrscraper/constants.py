@@ -1,3 +1,5 @@
+"""Contains XPATH constants for scraping"""
+
 from .scraping import xpath, join
 
 
@@ -14,3 +16,17 @@ TEAM_ROSTER_ITEMS = join(xpath("div", class_="team-roster-item"), "a")
 TEAM_ROSTER_ITEM_ALIAS = xpath("div", class_="team-roster-item-name-alias")
 TEAM_ROSTER_ITEM_FULLNAME = xpath("div", class_="team-roster-item-name-real")
 TEAM_ROSTER_ITEM_IMAGE = join(xpath("div", class_="team-roster-item-img"), "img")
+
+MATCH_EVENT_NAME = "(//a[contains(@class, 'match-header-event')]//div//div)[1]"
+MATCH_NAME = "(//a[contains(@class, 'match-header-event')]//div//div)[2]"
+
+MATCH_TEAMS = xpath("a", class_="match-header-link")
+
+MATCH_TEAM_NAMES = join(MATCH_TEAMS, xpath("div", class_="wf-title-med"))
+MATCH_TEAM_LOGOS = join(MATCH_TEAMS, "img")
+
+MATCH_DATE = "//div[@class='moment-tz-convert'][1]"
+
+MATCH_PLAYER_TABLE = "//div[@class='vm-stats-game mod-active']//tbody//tr//td//a"
+MATCH_PLAYER_NAMES = join(MATCH_PLAYER_TABLE, "div[1]")
+MATCH_PLAYER_STATS = "//div[@class='vm-stats-game mod-active']//tbody//tr//td//span[contains(@class, 'mod-both')]"

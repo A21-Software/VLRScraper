@@ -1,7 +1,7 @@
 import pytest
 from contextlib import nullcontext
 
-from vlrscraper.utils import get_url_segment, epoch_from_timestamp
+from vlrscraper import utils
 
 
 @pytest.mark.parametrize(
@@ -19,7 +19,7 @@ from vlrscraper.utils import get_url_segment, epoch_from_timestamp
 )
 def test_get_url_segment(url, index, rtype, result, err):
     with pytest.raises(err) if err else nullcontext():
-        assert get_url_segment(url, index, rtype=rtype) == result
+        assert utils.get_url_segment(url, index, rtype=rtype) == result
 
 
 @pytest.mark.parametrize(
@@ -50,4 +50,23 @@ def test_get_url_segment(url, index, rtype, result, err):
 )
 def test_epoch_from_timestamp(ts, fmt, epoch, err):
     with pytest.raises(err) if err else nullcontext():
-        assert epoch_from_timestamp(ts, fmt) == epoch
+        assert utils.epoch_from_timestamp(ts, fmt) == epoch
+
+
+def test_parse_name() -> None:
+    assert utils.parse_first_last_name("Test Name") == ("Test", "Name")
+    assert utils.parse_first_last_name("Test Middle Name") == ("Test", "Name")
+
+    assert utils.parse_first_last_name("Test Name (张钊)") == ("Test", "Name")
+    assert utils.parse_first_last_name("Test") == ("Test",)
+
+
+def test_parse_stat() -> None:
+    assert utils.parse_stat("100", int) == 100
+    assert utils.parse_stat("100", float) == 100.0
+
+    with pytest.raises(ValueError):
+        utils.parse_stat("100.1", int) == 100
+
+    assert utils.parse_stat("100%", int) == 100
+    assert utils.parse_stat("\xa0", float) is None

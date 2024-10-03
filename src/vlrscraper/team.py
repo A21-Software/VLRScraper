@@ -153,6 +153,14 @@ class Team:
         return team
 
     @staticmethod
+    def from_match_page(
+        _id: int, name: str, tag: str, logo: str, roster: list[Player]
+    ) -> Team:
+        team = Team(_id, name, tag, logo, roster)
+        team.set_fully_scraped(True)
+        return team
+
+    @staticmethod
     def get_team(_id: int) -> Optional[Team]:
         """Fetch team data from vlr.gg given the ID of the team
 
