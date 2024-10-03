@@ -101,7 +101,7 @@ class XpathParser:
         if elem is None or (txt := elem.text) is None:
             return ""
 
-        return txt.strip()
+        return txt.replace("\n", "").replace("\t", "").strip()
 
     def get_text_many(self, xpath: str) -> list[str]:
         elems = self.get_elements(xpath)

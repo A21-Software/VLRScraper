@@ -1,3 +1,5 @@
+"""Contains XPATH constants for scraping"""
+
 from .scraping import xpath, join
 
 

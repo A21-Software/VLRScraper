@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional
 
 from lxml import html
 
@@ -8,7 +9,7 @@ from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
 from vlrscraper import constants as const
 from vlrscraper.scraping import XpathParser
-from vlrscraper.utils import get_url_segment, epoch_from_timestamp
+from vlrscraper.utils import get_url_segment, epoch_from_timestamp, parse_stat
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
@@ -18,13 +19,13 @@ _logger = get_logger()
 
 @dataclass
 class MatchStats:
-    rating: float
+    rating: float | None
     ACS: int
     kills: int
     deaths: int
     assists: int
     KD: int
-    KAST: int
+    KAST: int | None
     ADR: int
     HS: int
     FK: int
@@ -41,7 +42,7 @@ class Match:
         match_name: str,
         event_name: str,
         epoch: float,
-        teams: tuple[Team, Team] = [],
+        teams: tuple[Team, Team] | tuple[()] = (),
     ) -> None:
         self.__id = _id
         self.__name = match_name
@@ -71,10 +72,10 @@ class Match:
     def get_full_name(self) -> str:
         return f"{self.__event} - {self.__name}"
 
-    def get_teams(self) -> list[Team]:
+    def get_teams(self) -> tuple[Team, Team] | tuple[()]:
         return self.__teams
 
-    def get_stats(self) -> list[MatchStats]:
+    def get_stats(self) -> dict[int, MatchStats]:
         return self.__stats
 
     def get_player_stats(self, player: int) -> Optional[MatchStats]:
@@ -83,9 +84,11 @@ class Match:
     def get_date(self) -> float:
         return self.__epoch
 
-    @staticmethod
-    def __perc(val: str) -> int:
-        return int(val.replace("%", ""))
+    def set_stats(self, stats: dict[int, MatchStats]):
+        self.__stats = stats
+
+    def add_match_stat(self, player: int, stats: MatchStats) -> None:
+        self.__stats.update({player: stats})
 
     @staticmethod
     def __parse_match_stats(
@@ -93,7 +96,7 @@ class Match:
     ) -> dict[int, MatchStats]:
         if len(stats) % 12 != 0:
             _logger.warning(f"Wrong amount of stats passed ({len(stats)})")
-            return []
+            return {}
         player_stats = {}
         TO_LOAD = [
             float,
@@ -102,9 +105,9 @@ class Match:
             int,
             int,
             int,
-            Match.__perc,
             int,
-            Match.__perc,
+            int,
+            int,
             int,
             int,
             int,
@@ -115,7 +118,10 @@ class Match:
             player_stats.update(
                 {
                     player: MatchStats(
-                        *[TO_LOAD[stat % 12](stats[stat].text) for stat in indexes]
+                        *[
+                            parse_stat(stats[stat].text, rtype=TO_LOAD[stat % 12])
+                            for stat in indexes
+                        ]
                     )
                 }
             )
@@ -136,17 +142,17 @@ class Match:
         ]
         match_stats = parser.get_elements(const.MATCH_PLAYER_STATS)
         match_stats_parsed = Match.__parse_match_stats(match_players, match_stats)
-        _logger.info(match_stats_parsed)
 
         match = Match(
             _id,
             parser.get_text(const.MATCH_NAME),
             parser.get_text(const.MATCH_EVENT_NAME),
             epoch_from_timestamp(
-                parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0],
-                "01:01:1970 00:00:00 -0000",
+                f'{parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0]} -0400',
+                "%Y-%m-%d %H:%M:%S %z",
             ),
             (),
         )
+        match.set_stats(match_stats_parsed)
 
         return match

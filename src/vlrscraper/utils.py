@@ -7,6 +7,7 @@ Implements:
 """
 
 from datetime import datetime
+from typing import TypeVar, Type
 
 
 def parse_first_last_name(name: str) -> tuple[str, str]:
@@ -14,7 +15,20 @@ def parse_first_last_name(name: str) -> tuple[str, str]:
     # Get rid of non-ascii names (ie korean names)
     if names[-1].startswith("("):
         names.pop(-1)
+
+    # Only one name (Weird ?)
+    if len(names) == 1:
+        return (names[0],)
     return names[0], names[-1]
+
+
+T = TypeVar("T", int, float, str)
+
+
+def parse_stat(stat: str, rtype: Type) -> T | None:
+    if stat == "\xa0":
+        return None
+    return rtype(stat.replace("%", "").strip())
 
 
 def get_url_segment(url: str, index: int, rtype: type = str):

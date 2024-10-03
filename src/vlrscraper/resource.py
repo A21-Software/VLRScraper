@@ -2,14 +2,20 @@ from typing import Any
 
 import requests
 
+from vlrscraper.logger import get_logger
+
+_logger = get_logger()
+
 
 class ResourceResponse:
     @staticmethod
     def id_invalid(_id: Any) -> dict:
+        _logger.warning(f"Attempt to get resource at ID {_id} failed, invalid ID.")
         return {"success": False, "error": f"Invalid id given: {_id}"}
 
     @staticmethod
     def request_refused(url: str, code: int) -> dict:
+        _logger.warning(f"Attempt to get data at {url} timed out (Status code {code})")
         return {
             "success": False,
             "error": f"Invalid status code {code} recieved when fetching data from {url}",
