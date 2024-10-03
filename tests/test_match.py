@@ -1,6 +1,8 @@
 from vlrscraper.match import Match, MatchStats
 from vlrscraper.team import Team
 
+from .helpers import assert_teams
+
 
 def test_match_init():
     m = Match(
@@ -8,14 +10,20 @@ def test_match_init():
         "NA Play-ins: Grand Final",
         "Red Bull Home Ground #5",
         100,
-        (Team(2, "Sentinels", "", ""), Team(188, "Cloud9", "", "")),
+        (
+            Team.from_match_page(2, "Sentinels", "", "", []),
+            Team.from_match_page(188, "Cloud9", "", "", []),
+        ),
     )
     assert m.get_id() == 408415
     assert m.get_name() == "NA Play-ins: Grand Final"
     assert m.get_event_name() == "Red Bull Home Ground #5"
     assert m.get_full_name() == "Red Bull Home Ground #5 - NA Play-ins: Grand Final"
     assert m.get_date() == 100
-    assert m.get_teams() == (Team(2, "Sentinels", "", ""), Team(188, "Cloud9", "", ""))
+    assert m.get_teams() == (
+        Team.from_match_page(2, "Sentinels", "", "", []),
+        Team.from_match_page(188, "Cloud9", "", "", []),
+    )
 
 
 def test_match_eq():
@@ -24,7 +32,10 @@ def test_match_eq():
         "NA Play-ins: Grand Final",
         "Red Bull Home Ground #5",
         100,
-        (Team(2, "Sentinels", "", ""), Team(188, "Cloud9", "", "")),
+        (
+            Team.from_match_page(2, "Sentinels", "", "", []),
+            Team.from_match_page(188, "Cloud9", "", "", []),
+        ),
     )
     assert m == m
 
@@ -42,10 +53,12 @@ def test_match_get():
         1.19, 271, 45, 36, 8, 9, 71, 164, 21, 7, 5, 2
     )
 
-    """ assert m.get_teams() == (
-        Team(2, "Sentinels", "", "https://owcdn.net/img/62875027c8e06.png"),
-        Team(188, "Cloud9", "", "https://owcdn.net/img/628addcbd509e.png"),
-    ) """
+    assert_teams(
+        m.get_teams()[0],
+        Team.from_match_page(
+            2, "Sentinels", "", "https://owcdn.net/img/62875027c8e06.png", []
+        ),
+    )
 
     # China match (no stats)
     m = Match.get_match(370727)

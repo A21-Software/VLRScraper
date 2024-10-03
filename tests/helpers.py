@@ -14,4 +14,4 @@ def assert_players(player: Player, player2: Player) -> None:
 def assert_teams(team: Team, team2: Team) -> None:
     assert team.get_name() == team2.get_name()
     assert team.get_id() == team2.get_id()
-    assert team.get_logo() == team2.get_id()
+    assert team.get_logo() == team2.get_logo()

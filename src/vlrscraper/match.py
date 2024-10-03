@@ -136,12 +136,35 @@ class Match:
 
         parser = XpathParser(data["data"])
 
-        match_players = [
+        match_player_ids = [
             get_url_segment(x, 2, rtype=int)
             for x in parser.get_elements(const.MATCH_PLAYER_TABLE, "href")
         ]
+        match_player_names = parser.get_text_many(const.MATCH_PLAYER_NAMES)
         match_stats = parser.get_elements(const.MATCH_PLAYER_STATS)
-        match_stats_parsed = Match.__parse_match_stats(match_players, match_stats)
+        match_stats_parsed = Match.__parse_match_stats(match_player_ids, match_stats)
+
+        team_links = parser.get_elements(const.MATCH_TEAMS, "href")
+        team_names = parser.get_text_many(const.MATCH_TEAM_NAMES)
+        team_logos = parser.get_elements(const.MATCH_TEAM_LOGOS, "src")
+        _logger.debug(team_logos)
+
+        from vlrscraper.team import Team
+        from vlrscraper.player import Player
+
+        teams = tuple(
+            Team.from_match_page(
+                get_url_segment(team, 2, int),
+                team_names[i],
+                "",
+                f"https:{team_logos[i]}",
+                [
+                    Player.from_match_page(match_player_ids[pl], match_player_names[pl])
+                    for pl in range(i * 5, (i + 1) * 5)
+                ],
+            )
+            for i, team in enumerate(team_links)
+        )
 
         match = Match(
             _id,
@@ -151,7 +174,7 @@ class Match:
                 f'{parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0]} -0400',
                 "%Y-%m-%d %H:%M:%S %z",
             ),
-            (),
+            teams,
         )
         match.set_stats(match_stats_parsed)
 
