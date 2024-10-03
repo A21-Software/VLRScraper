@@ -3,10 +3,10 @@ from typing import Optional, TYPE_CHECKING
 from enum import IntEnum
 
 import vlrscraper.constants as const
-from vlrscraper.logger import get_logger
 from vlrscraper.resource import Resource
-from vlrscraper.scraping import XpathParser, join
-from vlrscraper.utils import get_url_segment, parse_first_last_name
+from vlrscraper.logger import get_logger
+from vlrscraper.scraping import XpathParser
+from vlrscraper.utils import parse_first_last_name
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
@@ -15,9 +15,6 @@ if TYPE_CHECKING:
 class PlayerStatus(IntEnum):
     INACTIVE = 1
     ACTIVE = 2
-
-    def __repr__(self) -> str:
-        return self.name
 
 
 _logger = get_logger()
@@ -52,7 +49,7 @@ class Player:
         _logger.warning(
             "Avoid using inbuilt equality for Players. See Player.is_same_player()"
         )
-        return self == other
+        return object.__eq__(self, other)
 
     def __repr__(self) -> str:
         return f"Player({self.get_id()}, {self.get_display_name()}, {self.get_name()}, {self.get_image()}, {self.get_current_team()}, {self.get_status().name if self.get_status() else None})"
@@ -134,28 +131,23 @@ class Player:
 
         parser = XpathParser(data["data"])
 
+        player_alias = parser.get_text(const.PLAYER_DISPLAYNAME)
+        player_image = f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}"
         player_name = parse_first_last_name(parser.get_text(const.PLAYER_FULLNAME))
+        player_status = (
+            PlayerStatus.ACTIVE
+            if len(parser.get_elements(const.PLAYER_INACTIVE_CHECK)) <= 2
+            else PlayerStatus.INACTIVE
+        )
 
         from vlrscraper.team import Team
 
-        team_id = get_url_segment(
-            parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int
-        )
-
-        imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
-        namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
-
-        team_image = f"https:{parser.get_img(imgpath)}"
-        team_name = parser.get_text(namepath)
-
         return Player.from_player_page(
             _id,
-            parser.get_text(const.PLAYER_DISPLAYNAME),
+            player_alias,
             player_name[0],
             player_name[-1],
-            Team.from_player_page(team_id, team_name, team_image),
-            f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}",
-            PlayerStatus.ACTIVE
-            if len(parser.get_elements(const.PLAYER_INACTIVE_CHECK)) <= 2
-            else PlayerStatus.INACTIVE,
+            Team.get_team_from_player_page(parser=parser),
+            player_image,
+            player_status,
         )

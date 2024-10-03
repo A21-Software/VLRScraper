@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from vlrscraper.logger import get_logger
 from vlrscraper.resource import Resource
 from vlrscraper import constants as const
-from vlrscraper.scraping import XpathParser
+from vlrscraper.scraping import XpathParser, join
 from vlrscraper.utils import get_url_segment, parse_first_last_name
 
 
@@ -259,3 +259,16 @@ class Team:
             ),
         )
         return team
+
+    @staticmethod
+    def get_team_from_player_page(parser: XpathParser) -> Team:
+        imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
+        namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
+
+        team_name = parser.get_text(namepath)
+        team_image = f"https:{parser.get_img(imgpath)}"
+        team_id = get_url_segment(
+            parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int
+        )
+
+        return Team.from_player_page(team_id, team_name, team_image)

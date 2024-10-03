@@ -87,6 +87,9 @@ def test_player_equals():
     )
     assert benjy.is_same_player(benjy3)
 
+    assert benjy == benjy
+    assert benjy != benjy2
+
 
 def test_string():
     benjy = Player(
@@ -102,6 +105,30 @@ def test_string():
         str(benjy)
         == "Player(29873, benjyfishy, Benjamin Fish, https://owcdn.net/img/665b77ca4bc4d.png, 1001, ACTIVE)"
     )
+
+
+def test_player_from():
+    benjy = Player.from_player_page(
+        29873,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
+    )
+    benjy = Player.from_team_page(
+        29873,
+        "benjyfishy",
+        1001,
+        "Benjamin",
+        "Fish",
+        "https://owcdn.net/img/665b77ca4bc4d.png",
+        PlayerStatus.ACTIVE,
+    )
+    benjy = Player.from_match_page(29873, "Benjyfishy")
+
+    assert benjy.get_name() is benjy.get_current_team() is benjy.get_status() is None
 
 
 def test_player_get():
