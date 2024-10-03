@@ -1,5 +1,5 @@
 from vlrscraper.team import Team
-from vlrscraper.player import Player
+from vlrscraper.player import Player, PlayerStatus
 
 from .helpers import assert_players
 
@@ -42,13 +42,27 @@ def test_getTeam():
     assert len(sen.get_roster()) == 8
     assert_players(
         sen.get_roster()[0],
-        Player(
+        Player.from_team_page(
             1265,
             "johnqt",
-            sen,
             "Mohamed",
             "Ouarid",
+            sen,
             "https://owcdn.net/img/65622aa13dc03.png",
+            PlayerStatus.ACTIVE,
+        ),
+    )
+
+    assert_players(
+        sen.get_roster()[4],
+        Player.from_team_page(
+            45,
+            "SicK",
+            "Hunter",
+            "Mims",
+            sen,
+            "https://owcdn.net/img/6399a54fc4472.png",
+            PlayerStatus.INACTIVE,
         ),
     )
 

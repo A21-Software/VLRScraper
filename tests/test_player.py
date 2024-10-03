@@ -67,8 +67,8 @@ def test_player_get():
     benjy = Player.get_player(29873)
     assert benjy.get_id() == 29873
     assert benjy.get_display_name() == "benjyfishy"
-    assert benjy.get_current_team() == Team(
-        1001, "Team Heretics", "", "https://owcdn.net/img/637b755224c12.png"
+    assert benjy.get_current_team() == Team.from_player_page(
+        1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
     )
     assert benjy.get_name() == "Benjamin Fish"
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
@@ -78,8 +78,8 @@ def test_player_get():
     crappy = Player.get_player(31207)
     assert crappy.get_id() == 31207
     assert crappy.get_display_name() == "Carpe"
-    assert crappy.get_current_team() == Team(
-        14, "T1", "", "https://owcdn.net/img/62fe0b8f6b084.png"
+    assert crappy.get_current_team() == Team.from_player_page(
+        14, "T1", "https://owcdn.net/img/62fe0b8f6b084.png"
     )
     assert crappy.get_name() == "Lee Jae-hyeok"
     assert crappy.get_image() == "https://owcdn.net/img/65cc6f0f4da99.png"
