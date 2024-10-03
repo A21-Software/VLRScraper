@@ -17,6 +17,7 @@ def test_match_init():
     assert m.get_date() == 100
     assert m.get_teams() == (Team(2, "Sentinels", "", ""), Team(188, "Cloud9", "", ""))
 
+
 def test_match_eq():
     m = Match(
         408415,
@@ -26,6 +27,7 @@ def test_match_eq():
         (Team(2, "Sentinels", "", ""), Team(188, "Cloud9", "", "")),
     )
     assert m == m
+
 
 def test_match_get():
     # Current match
