@@ -39,6 +39,7 @@ def test_getTeam():
     assert sen.get_id() == 2
     assert sen.get_name() == "Sentinels"
     assert sen.get_logo() == "https://owcdn.net/img/62875027c8e06.png"
+    assert sen.get_fully_scraped() is True
     assert len(sen.get_roster()) == 8
     assert_players(
         sen.get_roster()[0],
@@ -52,6 +53,7 @@ def test_getTeam():
             PlayerStatus.ACTIVE,
         ),
     )
+    assert sen.get_roster()[0].is_fully_scraped() is True
 
     assert_players(
         sen.get_roster()[4],

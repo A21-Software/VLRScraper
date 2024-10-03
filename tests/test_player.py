@@ -73,6 +73,7 @@ def test_player_get():
     assert benjy.get_name() == "Benjamin Fish"
     assert benjy.get_image() == "https://owcdn.net/img/665b77ca4bc4d.png"
     assert benjy.get_status() == PlayerStatus.ACTIVE
+    assert benjy.is_fully_scraped() is True
 
     # Player with non-latin characters in name
     crappy = Player.get_player(31207)
@@ -81,9 +82,11 @@ def test_player_get():
     assert crappy.get_current_team() == Team.from_player_page(
         14, "T1", "https://owcdn.net/img/62fe0b8f6b084.png"
     )
+    assert crappy.get_current_team().get_fully_scraped() is False
     assert crappy.get_name() == "Lee Jae-hyeok"
     assert crappy.get_image() == "https://owcdn.net/img/65cc6f0f4da99.png"
     assert crappy.get_status() == PlayerStatus.ACTIVE
+    assert crappy.is_fully_scraped() is True
 
     # Bad player very bad
     assert Player.get_player(None) is None
