@@ -6,7 +6,7 @@ import vlrscraper.constants as const
 from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
 from vlrscraper.scraping import XpathParser
-from vlrscraper.utils import parse_first_last_name
+from vlrscraper.utils import parse_first_last_name, get_url_segment
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
@@ -39,8 +39,8 @@ class Player:
         self.__id = _id
         self.__displayname = name
         self.__current_team = current_team
-        self.__name = (
-            tuple(filter(lambda x: x is not None, (forename, surname))) or None
+        self.__name: tuple[str, ...] | None = (
+            tuple(x for x in (forename, surname) if x is not None) or None
         )
         self.__image_src = image
         self.__status = status
@@ -52,7 +52,17 @@ class Player:
         return object.__eq__(self, other)
 
     def __repr__(self) -> str:
-        return f"Player({self.get_id()}, {self.get_display_name()}, {self.get_name()}, {self.get_image()}, {self.get_current_team()}, {self.get_status().name if self.get_status() else None})"
+        return (
+            f"Player({self.get_id()}"
+            + f", {self.get_display_name()}" * bool(self.get_display_name())
+            + f", {self.get_name()}" * bool(self.get_name())
+            + f", {self.get_image()}" * bool(self.get_image())
+            + f", {0 if (t := self.get_current_team()) is None else t.get_name()}"
+            * bool(t)
+            + f", {0 if (s := self.get_status()) is None else s.name}"
+            * bool(self.get_status())
+            + ")"
+        )
 
     def get_id(self) -> int:
         return self.__id
@@ -86,7 +96,7 @@ class Player:
         _id: int,
         display_name: str,
         forename: str,
-        surname: str,
+        surname: str | None,
         current_team: Team,
         image: str,
         status: PlayerStatus,
@@ -98,7 +108,7 @@ class Player:
         _id: int,
         display_name: str,
         forename: str,
-        surname: str,
+        surname: str | None,
         current_team: Team,
         image: str,
         status: PlayerStatus,
@@ -151,3 +161,39 @@ class Player:
             player_image,
             player_status,
         )
+
+    @staticmethod
+    def get_players_from_team_page(parser: XpathParser, team: Team) -> list[Player]:
+        player_ids = [
+            get_url_segment(url, 2, rtype=int)
+            for url in parser.get_elements(const.TEAM_ROSTER_ITEMS, "href")
+        ]
+        player_aliases = parser.get_text_many(const.TEAM_ROSTER_ITEM_ALIAS)
+        player_fullnames = [
+            parse_first_last_name(name)
+            for name in parser.get_text_many(const.TEAM_ROSTER_ITEM_FULLNAME)
+        ]
+        player_images = [
+            f"https:{img}"
+            for img in parser.get_elements(const.TEAM_ROSTER_ITEM_IMAGE, "src")
+        ]
+        player_tags = [
+            parser.get_text(
+                f"//a[contains(@href, '{p.lower()}')]//div[contains(@class, 'wf-tag')]"
+            )
+            for p in player_aliases
+        ]
+        return [
+            Player.from_team_page(
+                pid,
+                player_aliases[i],
+                player_fullnames[i][0],
+                player_fullnames[i][1],
+                team,
+                image=player_images[i],
+                status=PlayerStatus.INACTIVE
+                if player_tags[i] == "Inactive"
+                else PlayerStatus.ACTIVE,
+            )
+            for i, pid in enumerate(player_ids)
+        ]

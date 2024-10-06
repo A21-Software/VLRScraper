@@ -18,19 +18,19 @@ _logger = get_logger()
 
 
 @dataclass
-class MatchStats:
+class PlayerStats:
     rating: float | None
-    ACS: int
-    kills: int
-    deaths: int
-    assists: int
-    KD: int
+    ACS: int | None
+    kills: int | None
+    deaths: int | None
+    assists: int | None
+    KD: int | None
     KAST: int | None
-    ADR: int
-    HS: int
-    FK: int
-    FD: int
-    FKFD: int
+    ADR: int | None
+    HS: int | None
+    FK: int | None
+    FD: int | None
+    FKFD: int | None
 
 
 class Match:
@@ -49,15 +49,25 @@ class Match:
         self.__event = event_name
         self.__epoch = epoch
         self.__teams = teams
-        self.__stats: dict[int, MatchStats] = {}
+        self.__stats: dict[int, PlayerStats] = {}
 
     def __eq__(self, other: object) -> bool:
+        _logger.warning(
+            "Avoid using inbuilt equality for Players. See Match.is_same_match()"
+        )
+        return object.__eq__(self, other)
+
+    def is_same_match(self, other: object) -> bool:
         return (
             isinstance(other, Match)
             and self.get_id() == other.get_id()
             and self.get_full_name() == other.get_full_name()
             and self.get_date() == other.get_date()
-            and self.get_teams() == other.get_teams()
+            and all(
+                team.is_same_team(other.get_teams()[i])
+                and team.has_same_roster(other.get_teams()[i])
+                for i, team in enumerate(self.get_teams())
+            )
         )
 
     def get_id(self) -> int:
@@ -75,53 +85,45 @@ class Match:
     def get_teams(self) -> tuple[Team, Team] | tuple[()]:
         return self.__teams
 
-    def get_stats(self) -> dict[int, MatchStats]:
+    def get_stats(self) -> dict[int, PlayerStats]:
         return self.__stats
 
-    def get_player_stats(self, player: int) -> Optional[MatchStats]:
+    def get_player_stats(self, player: int) -> Optional[PlayerStats]:
         return self.__stats.get(player, None)
 
     def get_date(self) -> float:
         return self.__epoch
 
-    def set_stats(self, stats: dict[int, MatchStats]):
+    def set_stats(self, stats: dict[int, PlayerStats]):
         self.__stats = stats
 
-    def add_match_stat(self, player: int, stats: MatchStats) -> None:
+    def add_match_stat(self, player: int, stats: PlayerStats) -> None:
         self.__stats.update({player: stats})
 
     @staticmethod
     def __parse_match_stats(
         players: list[int], stats: list[html.HtmlElement]
-    ) -> dict[int, MatchStats]:
+    ) -> dict[int, PlayerStats]:
         if len(stats) % 12 != 0:
             _logger.warning(f"Wrong amount of stats passed ({len(stats)})")
             return {}
         player_stats = {}
-        TO_LOAD = [
-            float,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-            int,
-        ]
         for i, player in enumerate(players):
-            indexes = range(i * 12, (i + 1) * 12)
-
             player_stats.update(
                 {
-                    player: MatchStats(
-                        *[
-                            parse_stat(stats[stat].text, rtype=TO_LOAD[stat % 12])
-                            for stat in indexes
-                        ]
+                    player: PlayerStats(
+                        parse_stat(stats[i * 12 + 0].text, rtype=float),
+                        parse_stat(stats[i * 12 + 1].text, rtype=int),
+                        parse_stat(stats[i * 12 + 2].text, rtype=int),
+                        parse_stat(stats[i * 12 + 3].text, rtype=int),
+                        parse_stat(stats[i * 12 + 4].text, rtype=int),
+                        parse_stat(stats[i * 12 + 5].text, rtype=int),
+                        parse_stat(stats[i * 12 + 6].text, rtype=int),
+                        parse_stat(stats[i * 12 + 7].text, rtype=int),
+                        parse_stat(stats[i * 12 + 8].text, rtype=int),
+                        parse_stat(stats[i * 12 + 9].text, rtype=int),
+                        parse_stat(stats[i * 12 + 10].text, rtype=int),
+                        parse_stat(stats[i * 12 + 11].text, rtype=int),
                     )
                 }
             )
@@ -152,18 +154,27 @@ class Match:
         from vlrscraper.team import Team
         from vlrscraper.player import Player
 
-        teams = tuple(
+        teams = (
             Team.from_match_page(
-                get_url_segment(team, 2, int),
-                team_names[i],
+                get_url_segment(team_links[0], 2, int),
+                team_names[0],
                 "",
-                f"https:{team_logos[i]}",
+                f"https:{team_logos[0]}",
                 [
                     Player.from_match_page(match_player_ids[pl], match_player_names[pl])
-                    for pl in range(i * 5, (i + 1) * 5)
+                    for pl in range(0, 5)
                 ],
-            )
-            for i, team in enumerate(team_links)
+            ),
+            Team.from_match_page(
+                get_url_segment(team_links[1], 2, int),
+                team_names[1],
+                "",
+                f"https:{team_logos[1]}",
+                [
+                    Player.from_match_page(match_player_ids[pl], match_player_names[pl])
+                    for pl in range(1, 5)
+                ],
+            ),
         )
 
         match = Match(

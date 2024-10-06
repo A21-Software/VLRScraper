@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Optional
 from vlrscraper.logger import get_logger
 from vlrscraper.resource import Resource
 from vlrscraper import constants as const
+from vlrscraper.utils import get_url_segment
 from vlrscraper.scraping import XpathParser, join
-from vlrscraper.utils import get_url_segment, parse_first_last_name
 
 
 if TYPE_CHECKING:
@@ -25,6 +25,9 @@ class Team:
         logo: Optional[str],
         roster: Optional[list[Player]],
     ) -> None:
+        if not isinstance(_id, int) or _id <= 0:
+            raise ValueError("Player ID must be an integer {0 < ID}")
+
         self.__id = _id
         self.__name = name
         self.__tag = tag
@@ -35,7 +38,7 @@ class Team:
         _logger.warning(
             "Avoid using inbuilt equality for Team. See Team.is_same_team() and Team.is_same_roster()"
         )
-        return self == other
+        return object.__eq__(self, other)
 
     def is_same_team(self, other: object) -> bool:
         """Check if this team's org is the same organization as the other team.
@@ -76,13 +79,32 @@ class Team:
         bool
             _description_
         """
-        return all(
-            [p.is_same_player(other.get_roster()[i])]
-            for i, p in enumerate(self.__roster)
+
+        if not isinstance(other, Team):
+            return False
+
+        mR, oR = self.get_roster(), other.get_roster()
+
+        return (
+            isinstance(other, Team)
+            and mR is None is oR
+            or (
+                not (mR is None or oR is None)
+                and len(mR) == len(oR)
+                and all([p.is_same_player(oR[i])] for i, p in enumerate(mR))
+            )
         )
 
     def __repr__(self) -> str:
-        return f"{self.get_name()} / {self.get_tag()}, [{self.get_logo()}]"
+        return (
+            f"Team({self.get_id()}"
+            + f", {self.get_name()}" * bool(self.get_name())
+            + f", {self.get_tag()}" * bool(self.get_tag())
+            + f", {self.get_logo()}" * bool(self.get_logo())
+            + f", {0 if (r := self.get_roster()) is None else [p.get_display_name() for p in r]}"
+            * bool(r)
+            + ")"
+        )
 
     def get_id(self) -> int:
         """Get the vlr ID of this team
@@ -94,7 +116,7 @@ class Team:
         """
         return self.__id
 
-    def get_name(self) -> str:
+    def get_name(self) -> Optional[str]:
         """Get the name of this team
 
         Returns
@@ -104,7 +126,7 @@ class Team:
         """
         return self.__name
 
-    def get_tag(self) -> str:
+    def get_tag(self) -> Optional[str]:
         """Get the 1-3 letter team tag of this team
 
         Returns
@@ -114,7 +136,7 @@ class Team:
         """
         return self.__tag
 
-    def get_logo(self) -> str:
+    def get_logo(self) -> Optional[str]:
         """Get the URL of this team's logo
 
         Returns
@@ -124,7 +146,7 @@ class Team:
         """
         return self.__logo
 
-    def get_roster(self) -> list[Player]:
+    def get_roster(self) -> Optional[list[Player]]:
         """Get the list of players / staff for this team
 
         Returns
@@ -136,6 +158,12 @@ class Team:
 
     def set_roster(self, roster: list[Player]) -> None:
         self.__roster = roster
+
+    def add_to_roster(self, player: Player) -> None:
+        if self.__roster is None:
+            self.__roster = []
+
+        self.__roster.append(player)
 
     @staticmethod
     def from_team_page(
@@ -211,27 +239,7 @@ class Team:
 
         parser = XpathParser(data["data"])
 
-        player_ids = [
-            get_url_segment(url, 2, rtype=int)
-            for url in parser.get_elements(const.TEAM_ROSTER_ITEMS, "href")
-        ]
-        player_aliases = parser.get_text_many(const.TEAM_ROSTER_ITEM_ALIAS)
-        player_fullnames = [
-            parse_first_last_name(name)
-            for name in parser.get_text_many(const.TEAM_ROSTER_ITEM_FULLNAME)
-        ]
-        player_images = [
-            f"https:{img}"
-            for img in parser.get_elements(const.TEAM_ROSTER_ITEM_IMAGE, "src")
-        ]
-        player_tags = [
-            parser.get_text(
-                f"//a[contains(@href, '{p.lower()}')]//div[contains(@class, 'wf-tag')]"
-            )
-            for p in player_aliases
-        ]
-
-        from vlrscraper.player import Player, PlayerStatus
+        from vlrscraper.player import Player
 
         team = Team.from_team_page(
             _id,
@@ -240,24 +248,8 @@ class Team:
             f"https:{parser.get_img(const.TEAM_IMG)}",
             [],
         )
+        team.set_roster(Player.get_players_from_team_page(parser, team))
 
-        team.set_roster(
-            list(
-                [
-                    Player.from_team_page(
-                        pid,
-                        player_aliases[i],
-                        *player_fullnames[i],
-                        team,
-                        image=player_images[i],
-                        status=PlayerStatus.INACTIVE
-                        if player_tags[i] == "Inactive"
-                        else PlayerStatus.ACTIVE,
-                    )
-                    for i, pid in enumerate(player_ids)
-                ]
-            ),
-        )
         return team
 
     @staticmethod
