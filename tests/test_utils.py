@@ -1,3 +1,4 @@
+# type: ignore
 import pytest
 from contextlib import nullcontext
 
@@ -58,7 +59,7 @@ def test_parse_name() -> None:
     assert utils.parse_first_last_name("Test Middle Name") == ("Test", "Name")
 
     assert utils.parse_first_last_name("Test Name (张钊)") == ("Test", "Name")
-    assert utils.parse_first_last_name("Test") == ("Test",)
+    assert utils.parse_first_last_name("Test") == ("Test", None)
 
 
 def test_parse_stat() -> None:
