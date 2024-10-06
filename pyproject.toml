@@ -1,5 +1,5 @@
 [project]
-name = "vlr-scraper"
+name = "vlrscraper"
 version = '0.0.1'
 authors = [
     { name = "Joe Paton", email = "joantpat@gmail.com" },
@@ -13,7 +13,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov"]
+test = ["pytest", "pytest-cov"]
+lint = ["ruff", "pyright"]
+docs = ["sphinx"]
 
 [build-system]
 requires = ["setuptools >= 61.0"]
