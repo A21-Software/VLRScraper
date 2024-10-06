@@ -2,11 +2,13 @@ import os
 import sys
 import logging
 
+from typing import Optional
+
 
 class LogConfig:
-    formatter: logging.Formatter | None = None
+    formatter: Optional[logging.Formatter] = None
     stdoutHandler: logging.StreamHandler = logging.StreamHandler(sys.stdout)
-    fileHandler: logging.FileHandler | None = None
+    fileHandler: Optional[logging.FileHandler] = None
     setup: bool = False
     logger: logging.Logger
 

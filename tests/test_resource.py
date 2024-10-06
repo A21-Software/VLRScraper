@@ -1,3 +1,4 @@
+# type: ignore
 import pytest
 
 from vlrscraper.resource import Resource, ResourceResponse
