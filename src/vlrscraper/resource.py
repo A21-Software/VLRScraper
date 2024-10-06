@@ -29,8 +29,14 @@ class ResourceResponse:
 class Resource:
     def __init__(self, url: str) -> None:
         if not isinstance(url, str):
+            _logger.error(
+                f"Attempt to create resource with url {url} failed. URL must be of type string."
+            )
             raise TypeError("Resource URLs must be strings.")
         if "<res_id>" not in url:
+            _logger.error(
+                "Resource URLs must contain some reference to a resource ID using the <res_id> tag."
+            )
             raise ValueError("Resource URLs must contain some reference to <res_id>.")
         self.__url = url
 

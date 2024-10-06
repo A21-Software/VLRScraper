@@ -5,7 +5,7 @@ Implements:
     - `xpath`, a function that generates xpath strings based on the arguments passed
 """
 
-from typing import Optional
+from typing import Optional, List
 
 from lxml import html
 
@@ -40,7 +40,7 @@ class XpathParser:
             return elem[0] if elem else None
         return None
 
-    def get_elements(self, xpath: str, attr: str = "") -> list[html.HtmlElement]:
+    def get_elements(self, xpath: str, attr: str = "") -> List[html.HtmlElement]:
         """Gets a list of htmlElements that match a given XPATH
 
         TODO: Do we want this to return null values for failed GETS or do we want this to return only the successful
@@ -51,7 +51,7 @@ class XpathParser:
             attr (str): The attribute to get from each element (or '')
 
         Returns:
-            list[str | html.HtmlElement]: The list of elements that match the given XPATH
+            List[str | html.HtmlElement]: The list of elements that match the given XPATH
         """
         return (
             [elem.get(attr, None) for elem in self.content.xpath(xpath)]
@@ -103,7 +103,7 @@ class XpathParser:
 
         return txt.replace("\n", "").replace("\t", "").strip()
 
-    def get_text_many(self, xpath: str) -> list[str]:
+    def get_text_many(self, xpath: str) -> List[str]:
         elems = self.get_elements(xpath)
 
         return [
