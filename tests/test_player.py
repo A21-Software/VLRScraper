@@ -1,3 +1,4 @@
+# type: ignore
 import pytest
 
 from vlrscraper.player import Player, PlayerStatus
@@ -53,7 +54,9 @@ def test_player_equals():
     benjy = Player(
         29873,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -65,7 +68,9 @@ def test_player_equals():
     benjy2 = Player(
         298731,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -79,7 +84,9 @@ def test_player_equals():
     benjy3 = Player(
         29873,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -95,7 +102,9 @@ def test_string():
     benjy = Player(
         29873,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -103,7 +112,7 @@ def test_string():
     )
     assert (
         str(benjy)
-        == "Player(29873, benjyfishy, Benjamin Fish, https://owcdn.net/img/665b77ca4bc4d.png, 1001, ACTIVE)"
+        == "Player(29873, benjyfishy, Benjamin Fish, https://owcdn.net/img/665b77ca4bc4d.png, Team Heretics, ACTIVE)"
     )
 
 
@@ -111,7 +120,9 @@ def test_player_from():
     benjy = Player.from_player_page(
         29873,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -120,7 +131,9 @@ def test_player_from():
     benjy = Player.from_team_page(
         29873,
         "benjyfishy",
-        1001,
+        Team.from_player_page(
+            1001, "Team Heretics", "https://owcdn.net/img/637b755224c12.png"
+        ),
         "Benjamin",
         "Fish",
         "https://owcdn.net/img/665b77ca4bc4d.png",
@@ -134,6 +147,7 @@ def test_player_from():
 def test_player_get():
     # Average player
     benjy = Player.get_player(29873)
+    assert benjy is not None
     assert benjy.get_id() == 29873
     assert benjy.get_display_name() == "benjyfishy"
     assert benjy.get_current_team().is_same_team(
@@ -147,6 +161,7 @@ def test_player_get():
 
     # Player with non-latin characters in name
     crappy = Player.get_player(31207)
+    assert crappy is not None
     assert crappy.get_id() == 31207
     assert crappy.get_display_name() == "Carpe"
     assert crappy.get_current_team().is_same_team(
