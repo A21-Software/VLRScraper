@@ -7,10 +7,10 @@ Implements:
 """
 
 from datetime import datetime
-from typing import TypeVar, Type, Optional
+from typing import TypeVar, Type, Optional, Tuple
 
 
-def parse_first_last_name(name: str) -> tuple[str, Optional[str]]:
+def parse_first_last_name(name: str) -> Tuple[str, Optional[str]]:
     names = name.split(" ")
     # Get rid of non-ascii names (ie korean names)
     if names[-1].startswith("("):
@@ -25,7 +25,7 @@ def parse_first_last_name(name: str) -> tuple[str, Optional[str]]:
 T = TypeVar("T", int, float, str)
 
 
-def parse_stat(stat: str | None, rtype: Type) -> T | None:
+def parse_stat(stat: Optional[str], rtype: Type) -> Optional[T]:
     if stat == "\xa0" or stat is None:
         return None
     return rtype(stat.replace("%", "").strip())

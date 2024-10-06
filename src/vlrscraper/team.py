@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 
 from vlrscraper.logger import get_logger
 from vlrscraper.resource import Resource
@@ -23,7 +23,7 @@ class Team:
         name: Optional[str],
         tag: Optional[str],
         logo: Optional[str],
-        roster: Optional[list[Player]],
+        roster: Optional[List[Player]],
     ) -> None:
         if not isinstance(_id, int) or _id <= 0:
             raise ValueError("Player ID must be an integer {0 < ID}")
@@ -146,7 +146,7 @@ class Team:
         """
         return self.__logo
 
-    def get_roster(self) -> Optional[list[Player]]:
+    def get_roster(self) -> Optional[List[Player]]:
         """Get the list of players / staff for this team
 
         Returns
@@ -156,7 +156,7 @@ class Team:
         """
         return self.__roster
 
-    def set_roster(self, roster: list[Player]) -> None:
+    def set_roster(self, roster: List[Player]) -> None:
         self.__roster = roster
 
     def add_to_roster(self, player: Player) -> None:
@@ -167,7 +167,7 @@ class Team:
 
     @staticmethod
     def from_team_page(
-        _id: int, name: str, tag: str, logo: str, roster: list[Player]
+        _id: int, name: str, tag: str, logo: str, roster: List[Player]
     ) -> Team:
         """Construct a Team object from the data available on the team's page
 
@@ -215,7 +215,7 @@ class Team:
 
     @staticmethod
     def from_match_page(
-        _id: int, name: str, tag: str, logo: str, roster: list[Player]
+        _id: int, name: str, tag: str, logo: str, roster: List[Player]
     ) -> Team:
         return Team(_id, name, tag, logo, roster)
 

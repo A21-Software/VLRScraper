@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Optional, TYPE_CHECKING
+
 from enum import IntEnum
+from typing import Optional, TYPE_CHECKING, List
 
 import vlrscraper.constants as const
 from vlrscraper.resource import Resource
@@ -39,9 +40,7 @@ class Player:
         self.__id = _id
         self.__displayname = name
         self.__current_team = current_team
-        self.__name: tuple[str, ...] | None = (
-            tuple(x for x in (forename, surname) if x is not None) or None
-        )
+        self.__name = tuple(x for x in (forename, surname) if x is not None) or None
         self.__image_src = image
         self.__status = status
 
@@ -96,7 +95,7 @@ class Player:
         _id: int,
         display_name: str,
         forename: str,
-        surname: str | None,
+        surname: Optional[str],
         current_team: Team,
         image: str,
         status: PlayerStatus,
@@ -108,7 +107,7 @@ class Player:
         _id: int,
         display_name: str,
         forename: str,
-        surname: str | None,
+        surname: Optional[str],
         current_team: Team,
         image: str,
         status: PlayerStatus,
@@ -163,7 +162,7 @@ class Player:
         )
 
     @staticmethod
-    def get_players_from_team_page(parser: XpathParser, team: Team) -> list[Player]:
+    def get_players_from_team_page(parser: XpathParser, team: Team) -> List[Player]:
         player_ids = [
             get_url_segment(url, 2, rtype=int)
             for url in parser.get_elements(const.TEAM_ROSTER_ITEMS, "href")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List, Tuple
 
 from lxml import html
 
@@ -19,18 +19,18 @@ _logger = get_logger()
 
 @dataclass
 class PlayerStats:
-    rating: float | None
-    ACS: int | None
-    kills: int | None
-    deaths: int | None
-    assists: int | None
-    KD: int | None
-    KAST: int | None
-    ADR: int | None
-    HS: int | None
-    FK: int | None
-    FD: int | None
-    FKFD: int | None
+    rating: Optional[float]
+    ACS: Optional[int]
+    kills: Optional[int]
+    deaths: Optional[int]
+    assists: Optional[int]
+    KD: Optional[int]
+    KAST: Optional[int]
+    ADR: Optional[int]
+    HS: Optional[int]
+    FK: Optional[int]
+    FD: Optional[int]
+    FKFD: Optional[int]
 
 
 class Match:
@@ -42,7 +42,7 @@ class Match:
         match_name: str,
         event_name: str,
         epoch: float,
-        teams: tuple[Team, Team] | tuple[()] = (),
+        teams: Tuple[Team, Team] | Tuple[()] = (),
     ) -> None:
         self.__id = _id
         self.__name = match_name
@@ -82,7 +82,7 @@ class Match:
     def get_full_name(self) -> str:
         return f"{self.__event} - {self.__name}"
 
-    def get_teams(self) -> tuple[Team, Team] | tuple[()]:
+    def get_teams(self) -> Tuple[Team, Team] | Tuple[()]:
         return self.__teams
 
     def get_stats(self) -> dict[int, PlayerStats]:
@@ -102,7 +102,7 @@ class Match:
 
     @staticmethod
     def __parse_match_stats(
-        players: list[int], stats: list[html.HtmlElement]
+        players: List[int], stats: List[html.HtmlElement]
     ) -> dict[int, PlayerStats]:
         if len(stats) % 12 != 0:
             _logger.warning(f"Wrong amount of stats passed ({len(stats)})")
