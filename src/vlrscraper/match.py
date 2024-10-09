@@ -12,7 +12,7 @@ from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
 from vlrscraper import constants as const
 from vlrscraper.scraping import XpathParser
-from vlrscraper.utils import get_url_segment, epoch_from_timestamp, parse_stat, test_performance, thread_over_data
+from vlrscraper.utils import get_url_segment, epoch_from_timestamp, parse_stat, thread_over_data
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
