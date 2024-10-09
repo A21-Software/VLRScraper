@@ -1,6 +1,7 @@
 # type: ignore
 from vlrscraper.match import Match, PlayerStats
 from vlrscraper.team import Team
+from vlrscraper.utils import previous_epoch
 
 from .helpers import assert_teams
 
@@ -44,6 +45,25 @@ def test_match_eq():
 
     assert m == m
     assert m != 10
+
+
+def test_match_player_get_ids():
+    m = Match.get_player_match_ids(4004, previous_epoch(days=30))
+    assert m == [408415, 408414]
+
+    assert len(Match.get_player_match_ids(4004, previous_epoch(days=60), previous_epoch(days=30))) == 4
+
+    assert len(Match.get_player_match_ids(4004, previous_epoch(days=30), previous_epoch(days=30))) == 0
+
+def test_match_player_get():
+    matches = Match.get_player_matches(4004, previous_epoch(days=30))
+    assert len(matches) == 2
+    assert matches[0].get_player_stats(729) == PlayerStats(
+        1.2, 245, 39, 30, 21, 9, 78, 146, 25, 9, 4, 5
+    )
+    assert matches[0].get_player_stats(18796) == PlayerStats(
+        0.84, 232, 35, 42, 10, -7, 71, 150, 20, 11, 6, 5
+    )
 
 
 def test_match_get():
