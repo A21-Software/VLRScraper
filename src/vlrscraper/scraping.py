@@ -4,10 +4,10 @@ Implements:
     - `XpathParser`, a class that can be used to scrape sites by xpath strings
     - `xpath`, a function that generates xpath strings based on the arguments passed
 """
-
 from typing import Optional, List
 
 from lxml import html
+from lxml.etree import _Element
 
 
 class XpathParser:
@@ -26,7 +26,7 @@ class XpathParser:
         else:
             raise TypeError("Data must be either string or HtmlElement")
 
-    def get_element(self, xpath: str) -> Optional[html.HtmlElement]:
+    def get_element(self, xpath: str) -> Optional[_Element]:
         """Gets a single HTML element from an XPATH string
 
         Args:
@@ -40,7 +40,7 @@ class XpathParser:
             return elem[0] if elem else None
         return None
 
-    def get_elements(self, xpath: str, attr: str = "") -> List[html.HtmlElement]:
+    def get_elements(self, xpath: str, attr: str = "") -> List[_Element]:
         """Gets a list of htmlElements that match a given XPATH
 
         TODO: Do we want this to return null values for failed GETS or do we want this to return only the successful
