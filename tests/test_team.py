@@ -85,7 +85,7 @@ def test_teamRepr():
     assert sen.get_roster() == [Player.from_match_page(4004, "Zekken"), Player.from_match_page(2, "TenZ"), Player.from_match_page(3, "johnqt")] """
 
 
-def test_getTeam():
+def test_getTeam(requests_regression):
     # Valid team
     sen = Team.get_team(2)
     assert sen is not None

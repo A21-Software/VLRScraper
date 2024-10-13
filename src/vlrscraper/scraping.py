@@ -4,9 +4,11 @@ Implements:
     - `XpathParser`, a class that can be used to scrape sites by xpath strings
     - `xpath`, a function that generates xpath strings based on the arguments passed
 """
-from typing import Optional, List
+
+from typing import Optional, List, Union
 
 from lxml import html
+from lxml.html import HtmlMixin
 from lxml.etree import _Element
 
 
@@ -26,7 +28,7 @@ class XpathParser:
         else:
             raise TypeError("Data must be either string or HtmlElement")
 
-    def get_element(self, xpath: str) -> Optional[_Element]:
+    def get_element(self, xpath: str) -> Optional[HtmlMixin]:
         """Gets a single HTML element from an XPATH string
 
         Args:
@@ -40,7 +42,7 @@ class XpathParser:
             return elem[0] if elem else None
         return None
 
-    def get_elements(self, xpath: str, attr: str = "") -> List[_Element]:
+    def get_elements(self, xpath: str, attr: str = "") -> List[Union[HtmlMixin, str]]:
         """Gets a list of htmlElements that match a given XPATH
 
         TODO: Do we want this to return null values for failed GETS or do we want this to return only the successful
@@ -53,8 +55,18 @@ class XpathParser:
         Returns:
             List[str | html.HtmlElement]: The list of elements that match the given XPATH
         """
+
+        elements = self.content.xpath(xpath)
+
+        if isinstance(elements, (float, bool, int)):
+            return []
+
         return (
-            [elem.get(attr, None) for elem in self.content.xpath(xpath)]
+            [
+                str(elem.get(attr, None))
+                for elem in elements
+                if isinstance(elem, _Element)
+            ]
             if attr
             else self.content.xpath(xpath)
         )
@@ -103,12 +115,16 @@ class XpathParser:
 
         return txt.replace("\n", "").replace("\t", "").strip()
 
+    def get_text_from_element(self, elem: HtmlMixin) -> str:
+        return str(elem.text_content()).replace("\t", "").replace("\n", "").strip()
+
     def get_text_many(self, xpath: str) -> List[str]:
         elems = self.get_elements(xpath)
 
         return [
-            elem.text_content().replace("\t", "").replace("\n", "").strip()
+            self.get_text_from_element(elem)
             for elem in elems
+            if isinstance(elem, HtmlMixin)
         ]
 
 

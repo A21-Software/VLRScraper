@@ -144,7 +144,7 @@ def test_player_from():
     assert benjy.get_name() is benjy.get_current_team() is benjy.get_status() is None
 
 
-def test_player_get():
+def test_player_get(requests_regression):
     # Average player
     benjy = Player.get_player(29873)
     assert benjy is not None

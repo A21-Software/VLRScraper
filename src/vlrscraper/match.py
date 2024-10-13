@@ -12,7 +12,12 @@ from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
 from vlrscraper import constants as const
 from vlrscraper.scraping import XpathParser
-from vlrscraper.utils import get_url_segment, epoch_from_timestamp, parse_stat, thread_over_data
+from vlrscraper.utils import (
+    get_url_segment,
+    epoch_from_timestamp,
+    parse_stat,
+    thread_over_data,
+)
 
 if TYPE_CHECKING:
     from vlrscraper.team import Team
@@ -36,13 +41,11 @@ class PlayerStats:
     FKFD: Optional[int]
 
 
-
 class ThreadedMatchScraper:
-
     def __init__(self, ids: list[int]) -> None:
-        self.__ids = ids
-        self.__responses = []
-        self.__data = []
+        self.__ids: List[int] = ids
+        self.__responses: List[Tuple[int, bytes]] = []
+        self.__data: List[Match] = []
         self.__scraping = False
 
     def fetch_single_url(self, _id: int) -> None:
@@ -50,7 +53,9 @@ class ThreadedMatchScraper:
         if response.status_code == 200:
             self.__responses.append((_id, response.content))
         else:
-            _logger.warning(f"Could not fetch data for match {_id}: {response.status_code}")
+            _logger.warning(
+                f"Could not fetch data for match {_id}: {response.status_code}"
+            )
 
     def fetch_urls(self) -> None:
         _logger.info(f"Began fetch URL thread for {self}")
@@ -183,11 +188,10 @@ class Match:
 
     @staticmethod
     def parse_match(_id: int, data: bytes) -> Match:
-
         parser = XpathParser(data)
 
         match_player_ids = [
-            get_url_segment(x, 2, rtype=int)
+            get_url_segment(str(x), 2, rtype=int)
             for x in parser.get_elements(const.MATCH_PLAYER_TABLE, "href")
         ]
         match_player_names = parser.get_text_many(const.MATCH_PLAYER_NAMES)
@@ -204,7 +208,7 @@ class Match:
 
         teams = (
             Team.from_match_page(
-                get_url_segment(team_links[0], 2, int),
+                get_url_segment(str(team_links[0]), 2, int),
                 team_names[0],
                 "",
                 f"https:{team_logos[0]}",
@@ -214,7 +218,7 @@ class Match:
                 ],
             ),
             Team.from_match_page(
-                get_url_segment(team_links[1], 2, int),
+                get_url_segment(str(team_links[1]), 2, int),
                 team_names[1],
                 "",
                 f"https:{team_logos[1]}",
@@ -247,7 +251,6 @@ class Match:
             return None
         return Match.parse_match(_id, data["data"])
 
-
     @staticmethod
     def __get_player_match_ids_page(
         _id: int, page: int = 1
@@ -261,8 +264,27 @@ class Match:
             for elem in parser.get_text_many(const.PLAYER_MATCH_DATES)
         ]
         match_ids = [
-            get_url_segment(elem, 1, rtype=int)
-            for elem in parser.get_elements(const.PLAYER_MATCHES, 'href')
+            get_url_segment(str(elem), 1, rtype=int)
+            for elem in parser.get_elements(const.PLAYER_MATCHES, "href")
+        ]
+        return match_ids, match_epochs
+
+    @staticmethod
+    def __get_team_match_ids_page(
+        _id: int, page: int = 1
+    ) -> Tuple[List[int], List[float]]:
+        r = Resource(f"https://vlr.gg/team/matches/<res_id>?page={page}")
+        if (data := r.get_data(_id))["success"] is False:
+            return ([], [])
+
+        parser = XpathParser(data["data"])
+        match_epochs = [
+            epoch_from_timestamp(f"{elem} -0400", "%Y/%m/%d%I:%M %p %z")
+            for elem in parser.get_text_many(const.TEAM_MATCH_DATES)
+        ]
+        match_ids = [
+            get_url_segment(str(elem), 1, rtype=int)
+            for elem in parser.get_elements(const.TEAM_MATCHES, "href")
         ]
         return match_ids, match_epochs
 
@@ -273,9 +295,41 @@ class Match:
         page = 1
         ids, epochs = Match.__get_player_match_ids_page(_id, page)
 
-        parsed_ids = []
+        parsed_ids: List[int] = []
 
-        while len(parsed_ids := parsed_ids + [id for i, id in enumerate(ids) if _from <= epochs[i] <= to]) % 50 == 0 and parsed_ids != []:
+        while (
+            len(
+                parsed_ids := parsed_ids
+                + [id for i, id in enumerate(ids) if _from <= epochs[i] <= to]
+            )
+            % 50
+            == 0
+            and parsed_ids != []
+        ):
+            _logger.warning(len(parsed_ids))
+            page += 1
+            ids, epochs = Match.__get_player_match_ids_page(_id, page)
+
+        return parsed_ids
+
+    @staticmethod
+    def get_team_match_ids(
+        _id: int, _from: float, to: float = time.time()
+    ) -> List[int]:
+        page = 1
+        ids, epochs = Match.__get_team_match_ids_page(_id, page)
+
+        parsed_ids: List[int] = []
+
+        while (
+            len(
+                parsed_ids := parsed_ids
+                + [id for i, id in enumerate(ids) if _from <= epochs[i] <= to]
+            )
+            % 50
+            == 0
+            and parsed_ids != []
+        ):
             _logger.warning(len(parsed_ids))
             page += 1
             ids, epochs = Match.__get_player_match_ids_page(_id, page)
@@ -292,3 +346,11 @@ class Match:
         matches = scraper.run()
         return matches
 
+    @staticmethod
+    def get_team_matches(
+        _id: int, _from: float, to: float = time.time()
+    ) -> List[Match]:
+        match_ids = Match.get_team_match_ids(_id, _from, to)
+        scraper = ThreadedMatchScraper(match_ids)
+        matches = scraper.run()
+        return matches

@@ -20,6 +20,9 @@ TEAM_ROSTER_ITEM_ALIAS = xpath("div", class_="team-roster-item-name-alias")
 TEAM_ROSTER_ITEM_FULLNAME = xpath("div", class_="team-roster-item-name-real")
 TEAM_ROSTER_ITEM_IMAGE = join(xpath("div", class_="team-roster-item-img"), "img")
 
+TEAM_MATCHES = "//a[contains(@class, 'wf-card') and not(contains(@class, 'm-item-games-item'))]"
+TEAM_MATCH_DATES = join(TEAM_MATCHES, xpath("div", class_="m-item-date"))
+
 MATCH_EVENT_NAME = "(//a[contains(@class, 'match-header-event')]//div//div)[1]"
 MATCH_NAME = "(//a[contains(@class, 'match-header-event')]//div//div)[2]"
 
