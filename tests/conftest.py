@@ -1,12 +1,11 @@
 import json
 import pytest
-from unittest import mock
 import requests
 
 from typing import Callable, Optional
 from vlrscraper.logger import get_logger
 
-global regression_json
+regression_json: dict
 
 
 def pytest_sessionstart(session):
@@ -16,11 +15,13 @@ def pytest_sessionstart(session):
 
 
 def pytest_sessionfinish(session, exitstatus):
+    global regression_json
     with open("regressions.json", "w+") as f:
         json.dump({"regressions": regression_json}, f)
 
 
 def get_regression(url: str) -> Optional[dict]:
+    global regression_json
     return regression_json.get(url, None)
 
 

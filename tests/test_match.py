@@ -69,12 +69,28 @@ def test_match_player_get_ids(requests_regression):
         == 0
     )
 
+
 def test_match_team_get_ids(requests_regression):
     m = Match.get_team_match_ids(2, previous_epoch(days=30))
     assert m == [412065, 408415, 408414]
 
-    assert len(Match.get_team_match_ids(2, previous_epoch(days=60), previous_epoch(days=30))) == 3
-    assert len(Match.get_team_match_ids(2, previous_epoch(days=30), previous_epoch(days=30))) == 0
+    assert (
+        len(
+            Match.get_team_match_ids(
+                2, previous_epoch(days=60), previous_epoch(days=30)
+            )
+        )
+        == 3
+    )
+    assert (
+        len(
+            Match.get_team_match_ids(
+                2, previous_epoch(days=30), previous_epoch(days=30)
+            )
+        )
+        == 0
+    )
+
 
 def test_match_player_get(requests_regression):
     matches = Match.get_player_matches(4004, previous_epoch(days=30))

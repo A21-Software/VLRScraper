@@ -8,8 +8,12 @@ Implements:
 from typing import Optional, List, Union
 
 from lxml import html
-from lxml.html import HtmlMixin
+from lxml.html import HtmlMixin, HtmlElement
 from lxml.etree import _Element
+
+from vlrscraper.logger import get_logger
+
+_logger = get_logger()
 
 
 class XpathParser:
@@ -28,7 +32,7 @@ class XpathParser:
         else:
             raise TypeError("Data must be either string or HtmlElement")
 
-    def get_element(self, xpath: str) -> Optional[HtmlMixin]:
+    def get_element(self, xpath: str) -> Optional[HtmlElement]:
         """Gets a single HTML element from an XPATH string
 
         Args:
@@ -42,7 +46,9 @@ class XpathParser:
             return elem[0] if elem else None
         return None
 
-    def get_elements(self, xpath: str, attr: str = "") -> List[Union[HtmlMixin, str]]:
+    def get_elements(
+        self, xpath: str, attr: str = ""
+    ) -> Union[List[HtmlElement], List[str]]:
         """Gets a list of htmlElements that match a given XPATH
 
         TODO: Do we want this to return null values for failed GETS or do we want this to return only the successful
@@ -58,7 +64,7 @@ class XpathParser:
 
         elements = self.content.xpath(xpath)
 
-        if isinstance(elements, (float, bool, int)):
+        if not isinstance(elements, list):
             return []
 
         return (
@@ -68,7 +74,7 @@ class XpathParser:
                 if isinstance(elem, _Element)
             ]
             if attr
-            else self.content.xpath(xpath)
+            else elements
         )
 
     def get_img(self, xpath: str) -> str:
