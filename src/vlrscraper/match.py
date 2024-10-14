@@ -196,7 +196,8 @@ class Match:
         ]
         match_player_names = parser.get_text_many(const.MATCH_PLAYER_NAMES)
         match_stats = parser.get_elements(const.MATCH_PLAYER_STATS)
-        match_stats_parsed = Match.__parse_match_stats(match_player_ids, match_stats)
+        
+        match_stats_parsed = Match.__parse_match_stats(match_player_ids, match_stats) #type: ignore
 
         team_links = parser.get_elements(const.MATCH_TEAMS, "href")
         team_names = parser.get_text_many(const.MATCH_TEAM_NAMES)
