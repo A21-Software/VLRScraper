@@ -9,10 +9,13 @@ readme = "README.md"
 requires-python = ">=3.6"
 dependencies = [
     "lxml",
+    "lxml-stubs",
     "requests",
+    "types-requests"
 ]
 
 [project.optional-dependencies]
+dev = ["tox", "pytest", "pytest-cov", "ruff", "pyright", "sphinx"]
 test = ["pytest", "pytest-cov"]
 lint = ["ruff", "pyright"]
 docs = ["sphinx"]
