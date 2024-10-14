@@ -1,5 +1,5 @@
 import json
-import pytest
+import pytest #type: ignore
 import requests
 
 from typing import Callable, Optional
