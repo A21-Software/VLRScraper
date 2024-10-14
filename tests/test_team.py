@@ -85,14 +85,14 @@ def test_teamRepr():
     assert sen.get_roster() == [Player.from_match_page(4004, "Zekken"), Player.from_match_page(2, "TenZ"), Player.from_match_page(3, "johnqt")] """
 
 
-def test_getTeam():
+def test_getTeam(requests_regression):
     # Valid team
     sen = Team.get_team(2)
     assert sen is not None
     assert sen.get_id() == 2
     assert sen.get_name() == "Sentinels"
     assert sen.get_logo() == "https://owcdn.net/img/62875027c8e06.png"
-    assert len(sen.get_roster()) == 8
+    assert len(sen.get_roster()) == 10
     assert_players(
         sen.get_roster()[0],
         Player.from_team_page(
@@ -107,7 +107,7 @@ def test_getTeam():
     )
 
     assert_players(
-        sen.get_roster()[4],
+        sen.get_roster()[6],
         Player.from_team_page(
             45,
             "SicK",

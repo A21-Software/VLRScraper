@@ -164,7 +164,7 @@ class Player:
     @staticmethod
     def get_players_from_team_page(parser: XpathParser, team: Team) -> List[Player]:
         player_ids = [
-            get_url_segment(url, 2, rtype=int)
+            get_url_segment(str(url), 2, rtype=int)
             for url in parser.get_elements(const.TEAM_ROSTER_ITEMS, "href")
         ]
         player_aliases = parser.get_text_many(const.TEAM_ROSTER_ITEM_ALIAS)
