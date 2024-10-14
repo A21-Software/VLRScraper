@@ -1,6 +1,6 @@
 [project]
 name = "vlrscraper"
-version = '0.0.1'
+version = '0.0.2'
 authors = [
     { name = "Joe Paton", email = "joantpat@gmail.com" },
 ]
@@ -9,10 +9,13 @@ readme = "README.md"
 requires-python = ">=3.6"
 dependencies = [
     "lxml",
+    "lxml-stubs",
     "requests",
+    "types-requests"
 ]
 
 [project.optional-dependencies]
+dev = ["tox", "pytest", "pytest-cov", "ruff", "pyright", "sphinx"]
 test = ["pytest", "pytest-cov"]
 lint = ["ruff", "pyright"]
 docs = ["sphinx"]
