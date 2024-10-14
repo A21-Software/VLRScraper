@@ -1,9 +1,8 @@
 name: Upload Python Package
 
 on:
-  merge:
-    branches:
-      - stable
+  push:
+    branches: ["stable"]
 
 jobs:
   build:
