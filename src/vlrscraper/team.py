@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, List
 
 from vlrscraper.logger import get_logger
-from vlrscraper.resource import Resource
 from vlrscraper import constants as const
 from vlrscraper.utils import get_url_segment
 from vlrscraper.scraping import XpathParser, join
+from vlrscraper.vlr_resources import team_resource, player_resource
 
 
 if TYPE_CHECKING:
@@ -15,8 +15,6 @@ _logger = get_logger()
 
 
 class Team:
-    resource = Resource("https://vlr.gg/team/<res_id>")
-
     def __init__(
         self,
         _id: int,
@@ -233,11 +231,9 @@ class Team:
         Optional[Team]
             The team data if the ID given was valid, otherwise `None`
         """
-        data = Team.resource.get_data(_id)
-        if not data["success"]:
-            return None
 
-        parser = XpathParser(data["data"])
+        if (parser := team_resource.get_parser(_id)) is None:
+            return None
 
         from vlrscraper.player import Player
 
@@ -264,3 +260,10 @@ class Team:
         )
 
         return Team.from_player_page(team_id, team_name, team_image)
+
+    @staticmethod
+    def get_player_team_history(_id: int) -> list[Team]:
+        parser = player_resource.get_parser(_id)
+
+        teams = parser.xpath(const.PLAYER_TEAMS)
+        print(teams)

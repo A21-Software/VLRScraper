@@ -1,8 +1,10 @@
 from typing import Any
 
 import requests
+from typing import Optional
 
 from vlrscraper.logger import get_logger
+from vlrscraper.scraping import XpathParser
 
 _logger = get_logger()
 
@@ -66,3 +68,7 @@ class Resource:
             if response.status_code == 200
             else ResourceResponse.request_refused(url, response.status_code)
         )
+
+    def get_parser(self, _id: int) -> Optional[XpathParser]:
+        data = self.get_data(_id, False)
+        return XpathParser(data["data"]) if data["success"] else None

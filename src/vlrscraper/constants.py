@@ -9,6 +9,10 @@ PLAYER_IMAGE_SRC = join(xpath("div", class_="wf-avatar"), "img")
 PLAYER_CURRENT_TEAM = f"({xpath('a', class_='wf-module-item mod-first')})[1]"
 PLAYER_INACTIVE_CHECK = "(//a[contains(@class, 'wf-module-item mod-first')])[1]//div[contains(@class, 'ge-text-light')]"
 
+PLAYER_TEAMS = (
+    "(//div[contains(@class, 'wf-card')][3])//a[contains(@class, 'wf-module-item')]"
+)
+
 PLAYER_MATCHES = xpath("a", class_="wf-card")
 PLAYER_MATCH_DATES = join(PLAYER_MATCHES, xpath("div", class_="m-item-date"))
 

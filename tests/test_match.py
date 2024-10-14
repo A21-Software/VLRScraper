@@ -80,7 +80,7 @@ def test_match_team_get_ids(requests_regression):
                 2, previous_epoch(days=60), previous_epoch(days=30)
             )
         )
-        == 3
+        == 2
     )
     assert (
         len(
