@@ -112,3 +112,7 @@ def thread_over_data(data: List[Any], data_cb: Callable, threads: int = 4) -> No
 
     for thread in thread_pool:
         thread.join()
+
+
+def resolve_vlr_image(url: str) -> str:
+    return "https:" + url if url.startswith("//") else f"https://vlr.gg{url}"
