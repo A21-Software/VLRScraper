@@ -263,7 +263,9 @@ class Team:
 
     @staticmethod
     def get_player_team_history(_id: int) -> list[Team]:
-        parser = player_resource.get_parser(_id)
+
+        if (parser := player_resource.get_parser(_id)) is None:
+            return []
 
         parsed_teams: List[Team] = []
 
