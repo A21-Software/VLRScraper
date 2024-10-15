@@ -8,8 +8,12 @@ from typing import TYPE_CHECKING, Optional, List, Tuple
 
 from lxml import html
 
-from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
+from vlrscraper.vlr_resources import (
+    match_resource,
+    player_match_resource,
+    team_resource,
+)
 from vlrscraper import constants as const
 from vlrscraper.scraping import XpathParser
 from vlrscraper.utils import (
@@ -91,8 +95,6 @@ class ThreadedMatchScraper:
 
 
 class Match:
-    resource = Resource("https://vlr.gg/<res_id>")
-
     def __init__(
         self,
         _id: int,
@@ -246,9 +248,7 @@ class Match:
 
     @staticmethod
     def get_match(_id: int) -> Optional[Match]:
-        data = Match.resource.get_data(_id)
-
-        if data["success"] is False:
+        if (data := match_resource.get_data(_id))["success"] is False:
             return None
         return Match.parse_match(_id, data["data"])
 
@@ -256,10 +256,8 @@ class Match:
     def __get_player_match_ids_page(
         _id: int, page: int = 1
     ) -> Tuple[List[int], List[float]]:
-        r = Resource(f"https://vlr.gg/player/matches/<res_id>?page={page}")
-        if (data := r.get_data(_id))["success"] is False:
+        if (parser := player_match_resource(page).get_parser(_id)) is None:
             return ([], [])
-        parser = XpathParser(data["data"])
         match_epochs = [
             epoch_from_timestamp(f"{elem} -0400", "%Y/%m/%d%I:%M %p %z")
             for elem in parser.get_text_many(const.PLAYER_MATCH_DATES)
@@ -274,11 +272,9 @@ class Match:
     def __get_team_match_ids_page(
         _id: int, page: int = 1
     ) -> Tuple[List[int], List[float]]:
-        r = Resource(f"https://vlr.gg/team/matches/<res_id>?page={page}")
-        if (data := r.get_data(_id))["success"] is False:
+        if (parser := team_resource.get_parser(_id)) is None:
             return ([], [])
 
-        parser = XpathParser(data["data"])
         match_epochs = [
             epoch_from_timestamp(f"{elem} -0400", "%Y/%m/%d%I:%M %p %z")
             for elem in parser.get_text_many(const.TEAM_MATCH_DATES)

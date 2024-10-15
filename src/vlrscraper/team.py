@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, List
 
 from vlrscraper.logger import get_logger
-from vlrscraper.resource import Resource
 from vlrscraper import constants as const
-from vlrscraper.utils import get_url_segment
 from vlrscraper.scraping import XpathParser, join
+from vlrscraper.utils import get_url_segment, resolve_vlr_image
+from vlrscraper.vlr_resources import team_resource, player_resource
 
 
 if TYPE_CHECKING:
@@ -15,8 +15,6 @@ _logger = get_logger()
 
 
 class Team:
-    resource = Resource("https://vlr.gg/team/<res_id>")
-
     def __init__(
         self,
         _id: int,
@@ -233,11 +231,9 @@ class Team:
         Optional[Team]
             The team data if the ID given was valid, otherwise `None`
         """
-        data = Team.resource.get_data(_id)
-        if not data["success"]:
-            return None
 
-        parser = XpathParser(data["data"])
+        if (parser := team_resource.get_parser(_id)) is None:
+            return None
 
         from vlrscraper.player import Player
 
@@ -253,7 +249,7 @@ class Team:
         return team
 
     @staticmethod
-    def get_team_from_player_page(parser: XpathParser) -> Team:
+    def get_team_from_player_page(parser: XpathParser, index: int = 1) -> Team:
         imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
         namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
 
@@ -264,3 +260,23 @@ class Team:
         )
 
         return Team.from_player_page(team_id, team_name, team_image)
+
+    @staticmethod
+    def get_player_team_history(_id: int) -> list[Team]:
+
+        if (parser := player_resource.get_parser(_id)) is None:
+            return []
+
+        parsed_teams: List[Team] = []
+
+        team = 1
+        while team_link := parser.get_href(f"{const.PLAYER_TEAMS}[{team}]"):
+            team_id = get_url_segment(team_link, 2, int)
+            team_name = parser.get_text(f"{const.PLAYER_TEAMS}[{team}]//div[2]//div[1]")
+            team_image = parser.get_img(f"{const.PLAYER_TEAMS}[{team}]//img")
+            parsed_teams.append(
+                Team.from_player_page(team_id, team_name, resolve_vlr_image(team_image))
+            )
+            team += 1
+
+        return parsed_teams

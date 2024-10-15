@@ -122,3 +122,24 @@ def test_getTeam(requests_regression):
     # Invalid team
     assert Team.get_team(-100) is None
     assert Team.get_team("2") is None
+
+
+def test_get_player_teams(requests_regression):
+    zekken_teams = Team.get_player_team_history(4004)
+
+    # Check whole team history is loaded
+    assert zekken_teams[0].is_same_team(
+        Team.from_player_page(2, "Sentinels", "https://owcdn.net/img/62875027c8e06.png")
+    )
+    assert zekken_teams[-1].is_same_team(
+        Team.from_player_page(
+            1028, "Wichita Wolves", "https://owcdn.net/img/5fe45562b0491.png"
+        )
+    )
+
+    # Check team with default logo
+    assert zekken_teams[1].is_same_team(
+        Team.from_player_page(
+            10963, "Team Zander", "https://vlr.gg/img/vlr/tmp/vlr.png"
+        )
+    )

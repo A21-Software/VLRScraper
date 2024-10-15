@@ -4,9 +4,9 @@ from enum import IntEnum
 from typing import Optional, TYPE_CHECKING, List
 
 import vlrscraper.constants as const
-from vlrscraper.resource import Resource
 from vlrscraper.logger import get_logger
 from vlrscraper.scraping import XpathParser
+from vlrscraper.vlr_resources import player_resource
 from vlrscraper.utils import parse_first_last_name, get_url_segment
 
 if TYPE_CHECKING:
@@ -22,8 +22,6 @@ _logger = get_logger()
 
 
 class Player:
-    resource = Resource("https://www.vlr.gg/player/<res_id>")
-
     def __init__(
         self,
         _id: int,
@@ -134,11 +132,8 @@ class Player:
 
     @staticmethod
     def get_player(_id: int) -> Optional[Player]:
-        data = Player.resource.get_data(_id)
-        if not data["success"]:
+        if (parser := player_resource.get_parser(_id)) is None:
             return None
-
-        parser = XpathParser(data["data"])
 
         player_alias = parser.get_text(const.PLAYER_DISPLAYNAME)
         player_image = f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}"
