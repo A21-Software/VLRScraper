@@ -2,6 +2,8 @@ vlrscraper
 ==========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
+   resources
+   controllers
    utils
