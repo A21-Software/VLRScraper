@@ -25,8 +25,8 @@ _logger = get_logger()
 
 
 class PlayerController:
-    """Contains all methods for scraping player data
-    """
+    """Contains all methods for scraping player data"""
+
     @staticmethod
     def get_player(_id: int) -> Optional[Player]:
         """Scrape a player's data given a valid vlr.gg player ID

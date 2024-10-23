@@ -1,3 +1,9 @@
+"""Contains all the data encapsulations for valorant entities such as
+- Player
+- Team
+- Match
+"""
+
 from __future__ import annotations
 
 from enum import IntEnum
@@ -128,7 +134,7 @@ class Player:
         """Get the status of the player
 
         :return: The status, either ACTIVE or INACTIVE
-        :rtype: :class:`vlrscraper.resources.PlayerStatus`
+        :rtype: PlayerStatus
         """
         return self.__status
 
@@ -137,11 +143,23 @@ class Player:
 
         This involves checking the id, name, display tag and image, but `not` the current team or current status
 
+        .. code-block:: python
+
+            benjy = Player(29873, "Benjyfishy", None, "Benjamin", "Fish", None, PlayerStatus.ACTIVE)
+            benjy_inactive = Player(29873, "Benjyfishy", None, "Benjamin", "Fish", None, PlayerStatus.INACTIVE)
+            carpe = Player(31207, "Carpe", None, "Lee", "Jae-hyeok", None, PlayerStatus.ACTIVE)
+
+            benjy.is_same_player(benjy)             # True
+            benjy.is_same_player(benjy_inactive)    # True
+            benjy.is_same_player(carpe)             # False
+
+
         :param other: The other player to check
         :type other: object
 
         :return: Whether both players represent the same `physical` player
         :rtype: bool
+
         """
         return (
             isinstance(other, Player)
@@ -337,14 +355,16 @@ class Team:
 
         mR, oR = self.get_roster(), other.get_roster()
 
+        rosters_are_empty = mR is None is oR
+        roster_is_empty = mR is None or oR is None
+        rosters_are_same = len(mR) == len(oR) and all(
+            [p.is_same_player(oR[i])] for i, p in enumerate(mR)
+        )
+
         return (
             isinstance(other, Team)
-            and mR is None is oR
-            or (
-                not (mR is None or oR is None)
-                and len(mR) == len(oR)
-                and all([p.is_same_player(oR[i])] for i, p in enumerate(mR))
-            )
+            and rosters_are_empty
+            or (not roster_is_empty and rosters_are_same)
         )
 
     def get_id(self) -> int:
@@ -564,16 +584,19 @@ class Match:
 
         :return: True if the matches are the same else False
         """
+
+        teams_are_equal = all(
+            team.is_same_team(other.get_teams()[i])
+            and team.has_same_roster(other.get_teams()[i])
+            for i, team in enumerate(self.get_teams())
+        )
+
         return (
             isinstance(other, Match)
             and self.get_id() == other.get_id()
             and self.get_full_name() == other.get_full_name()
             and self.get_date() == other.get_date()
-            and all(
-                team.is_same_team(other.get_teams()[i])
-                and team.has_same_roster(other.get_teams()[i])
-                for i, team in enumerate(self.get_teams())
-            )
+            and teams_are_equal
         )
 
     def get_id(self) -> int:
