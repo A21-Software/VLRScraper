@@ -123,6 +123,7 @@ def test_performance(func: Callable) -> None:
     :param func: The function to decorate
     :type func: :class:`collections.abc.Callable`
     """
+
     def inner(*args, **kwargs):
         timeStart = time.perf_counter()
         return_val = func(*args, **kwargs)

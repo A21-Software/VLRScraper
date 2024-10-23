@@ -1,5 +1,4 @@
-from vlrscraper.player import Player
-from vlrscraper.team import Team
+from vlrscraper.resources import Player, Team
 
 
 def assert_players(player: Player, player2: Player) -> None:

@@ -1,164 +1,176 @@
-from __future__ import annotations
+from typing import Optional, List, Tuple
 
 import time
-import requests
-from threading import Thread
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, List, Tuple
-
 from lxml import html
 
+import vlrscraper.constants as const
 from vlrscraper.logger import get_logger
+from vlrscraper.scraping import XpathParser, join, ThreadedMatchScraper
+from vlrscraper.resources import Player, PlayerStatus, Team, PlayerStats, Match
 from vlrscraper.vlr_resources import (
+    player_resource,
+    team_resource,
     match_resource,
     player_match_resource,
-    team_resource,
 )
-from vlrscraper import constants as const
-from vlrscraper.scraping import XpathParser
 from vlrscraper.utils import (
+    parse_first_last_name,
     get_url_segment,
-    epoch_from_timestamp,
+    resolve_vlr_image,
     parse_stat,
-    thread_over_data,
+    epoch_from_timestamp,
 )
-
-if TYPE_CHECKING:
-    from vlrscraper.team import Team
 
 _logger = get_logger()
 
 
-@dataclass
-class PlayerStats:
-    rating: Optional[float]
-    ACS: Optional[int]
-    kills: Optional[int]
-    deaths: Optional[int]
-    assists: Optional[int]
-    KD: Optional[int]
-    KAST: Optional[int]
-    ADR: Optional[int]
-    HS: Optional[int]
-    FK: Optional[int]
-    FD: Optional[int]
-    FKFD: Optional[int]
+class PlayerController:
+    """Contains all methods for scraping player data
+    """
+    @staticmethod
+    def get_player(_id: int) -> Optional[Player]:
+        """Scrape a player's data given a valid vlr.gg player ID
 
+        :param _id: The ID of the player on vlr.gg
+        :type _id: int
 
-class ThreadedMatchScraper:
-    def __init__(self, ids: list[int]) -> None:
-        self.__ids: List[int] = ids
-        self.__responses: List[Tuple[int, bytes]] = []
-        self.__data: List[Match] = []
-        self.__scraping = False
+        :return: The player data
+        :rtype: Optional[Player]
+        """
+        if (parser := player_resource.get_parser(_id)) is None:
+            return None
 
-    def fetch_single_url(self, _id: int) -> None:
-        response = requests.get(f"https://vlr.gg/{_id}")
-        if response.status_code == 200:
-            self.__responses.append((_id, response.content))
-        else:
-            _logger.warning(
-                f"Could not fetch data for match {_id}: {response.status_code}"
-            )
-
-    def fetch_urls(self) -> None:
-        _logger.info(f"Began fetch URL thread for {self}")
-        """ for _id in self.__ids:
-            response = requests.get(f"https://vlr.gg/{_id}")
-            if response.status_code == 200:
-                self.__responses.append((_id, response.content))
-            else:
-                _logger.warning(f"Could not fetch data for match {_id}: {response.status_code}") """
-        thread_over_data(self.__ids, self.fetch_single_url, 2)
-        self.__scraping = False
-
-    def parse_data(self) -> None:
-        _logger.info(f"Begain data parsing thread for {self}")
-        while self.__scraping or self.__responses:
-            if not self.__responses:
-                time.sleep(0.2)
-                continue
-            _id, data = self.__responses.pop(0)
-            self.__data.append(Match.parse_match(_id, data))
-
-    def run(self) -> list[Match]:
-        fetch_thread = Thread(target=self.fetch_urls)
-        parse_thread = Thread(target=self.parse_data)
-
-        self.__scraping = True
-
-        fetch_thread.start()
-        parse_thread.start()
-        parse_thread.join()
-
-        return sorted(self.__data, key=lambda m: m.get_date(), reverse=True)
-
-
-class Match:
-    def __init__(
-        self,
-        _id: int,
-        match_name: str,
-        event_name: str,
-        epoch: float,
-        teams: Tuple[Team, Team] | Tuple[()] = (),
-    ) -> None:
-        self.__id = _id
-        self.__name = match_name
-        self.__event = event_name
-        self.__epoch = epoch
-        self.__teams = teams
-        self.__stats: dict[int, PlayerStats] = {}
-
-    def __eq__(self, other: object) -> bool:
-        _logger.warning(
-            "Avoid using inbuilt equality for Players. See Match.is_same_match()"
-        )
-        return object.__eq__(self, other)
-
-    def is_same_match(self, other: object) -> bool:
-        return (
-            isinstance(other, Match)
-            and self.get_id() == other.get_id()
-            and self.get_full_name() == other.get_full_name()
-            and self.get_date() == other.get_date()
-            and all(
-                team.is_same_team(other.get_teams()[i])
-                and team.has_same_roster(other.get_teams()[i])
-                for i, team in enumerate(self.get_teams())
-            )
+        player_alias = parser.get_text(const.PLAYER_DISPLAYNAME)
+        player_image = f"https:{parser.get_img(const.PLAYER_IMAGE_SRC)}"
+        player_name = parse_first_last_name(parser.get_text(const.PLAYER_FULLNAME))
+        player_status = (
+            PlayerStatus.ACTIVE
+            if len(parser.get_elements(const.PLAYER_INACTIVE_CHECK)) <= 2
+            else PlayerStatus.INACTIVE
         )
 
-    def get_id(self) -> int:
-        return self.__id
+        from vlrscraper.controllers import TeamController
 
-    def get_name(self) -> str:
-        return self.__name
+        return Player.from_player_page(
+            _id,
+            player_alias,
+            player_name[0],
+            player_name[-1],
+            TeamController.get_team_from_player_page(parser=parser),
+            player_image,
+            player_status,
+        )
 
-    def get_event_name(self) -> str:
-        return self.__event
+    @staticmethod
+    def get_players_from_team_page(parser: XpathParser, team: Team) -> List[Player]:
+        """Scrape the player data from a team's vlr.gg page
 
-    def get_full_name(self) -> str:
-        return f"{self.__event} - {self.__name}"
+        :param parser: The page's XPathParser
+        :type parser: XpathParser
 
-    def get_teams(self) -> Tuple[Team, Team] | Tuple[()]:
-        return self.__teams
+        :param team: The team that the players are a part of
+        :type team: Team
 
-    def get_stats(self) -> dict[int, PlayerStats]:
-        return self.__stats
+        :return: A list of players that are present on the team vlr.gg page
+        :rtype: List[Player]
+        """
+        player_ids = [
+            get_url_segment(str(url), 2, rtype=int)
+            for url in parser.get_elements(const.TEAM_ROSTER_ITEMS, "href")
+        ]
+        player_aliases = parser.get_text_many(const.TEAM_ROSTER_ITEM_ALIAS)
+        player_fullnames = [
+            parse_first_last_name(name)
+            for name in parser.get_text_many(const.TEAM_ROSTER_ITEM_FULLNAME)
+        ]
+        player_images = [
+            f"https:{img}"
+            for img in parser.get_elements(const.TEAM_ROSTER_ITEM_IMAGE, "src")
+        ]
+        player_tags = [
+            parser.get_text(
+                f"//a[contains(@href, '{p.lower()}')]//div[contains(@class, 'wf-tag')]"
+            )
+            for p in player_aliases
+        ]
+        return [
+            Player.from_team_page(
+                pid,
+                player_aliases[i],
+                player_fullnames[i][0],
+                player_fullnames[i][1],
+                team,
+                image=player_images[i],
+                status=PlayerStatus.INACTIVE
+                if player_tags[i] == "Inactive"
+                else PlayerStatus.ACTIVE,
+            )
+            for i, pid in enumerate(player_ids)
+        ]
 
-    def get_player_stats(self, player: int) -> Optional[PlayerStats]:
-        return self.__stats.get(player, None)
 
-    def get_date(self) -> float:
-        return self.__epoch
+class TeamController:
+    @staticmethod
+    def get_team(_id: int) -> Optional[Team]:
+        """Scrape the team data from vlr.gg given a valid team ID
 
-    def set_stats(self, stats: dict[int, PlayerStats]):
-        self.__stats = stats
+        :param _id: The vlr.gg ID of the team
+        :type _id: int
 
-    def add_match_stat(self, player: int, stats: PlayerStats) -> None:
-        self.__stats.update({player: stats})
+        :return: The team data, or None if the ID is invalid
+        :rtype: Optional[Team]
+        """
 
+        if (parser := team_resource.get_parser(_id)) is None:
+            return None
+
+        from vlrscraper.controllers import PlayerController
+
+        team = Team.from_team_page(
+            _id,
+            parser.get_text(const.TEAM_DISPLAY_NAME),
+            parser.get_text(const.TEAM_TAG),
+            f"https:{parser.get_img(const.TEAM_IMG)}",
+            [],
+        )
+        team.set_roster(PlayerController.get_players_from_team_page(parser, team))
+
+        return team
+
+    @staticmethod
+    def get_team_from_player_page(parser: XpathParser, index: int = 1) -> Team:
+        imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
+        namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
+
+        team_name = parser.get_text(namepath)
+        team_image = f"https:{parser.get_img(imgpath)}"
+        team_id = get_url_segment(
+            parser.get_href(const.PLAYER_CURRENT_TEAM), 2, rtype=int
+        )
+
+        return Team.from_player_page(team_id, team_name, team_image)
+
+    @staticmethod
+    def get_player_team_history(_id: int) -> list[Team]:
+        if (parser := player_resource.get_parser(_id)) is None:
+            return []
+
+        parsed_teams: List[Team] = []
+
+        team = 1
+        while team_link := parser.get_href(f"{const.PLAYER_TEAMS}[{team}]"):
+            team_id = get_url_segment(team_link, 2, int)
+            team_name = parser.get_text(f"{const.PLAYER_TEAMS}[{team}]//div[2]//div[1]")
+            team_image = parser.get_img(f"{const.PLAYER_TEAMS}[{team}]//img")
+            parsed_teams.append(
+                Team.from_player_page(team_id, team_name, resolve_vlr_image(team_image))
+            )
+            team += 1
+
+        return parsed_teams
+
+
+class MatchController:
     @staticmethod
     def __parse_match_stats(
         players: List[int], stats: List[html.HtmlElement]
@@ -199,15 +211,14 @@ class Match:
         match_player_names = parser.get_text_many(const.MATCH_PLAYER_NAMES)
         match_stats = parser.get_elements(const.MATCH_PLAYER_STATS)
 
-        match_stats_parsed = Match.__parse_match_stats(match_player_ids, match_stats)  # type: ignore
+        match_stats_parsed = MatchController.__parse_match_stats(
+            match_player_ids, match_stats
+        )  # type: ignore
 
         team_links = parser.get_elements(const.MATCH_TEAMS, "href")
         team_names = parser.get_text_many(const.MATCH_TEAM_NAMES)
         team_logos = parser.get_elements(const.MATCH_TEAM_LOGOS, "src")
         _logger.debug(team_logos)
-
-        from vlrscraper.team import Team
-        from vlrscraper.player import Player
 
         teams = (
             Team.from_match_page(
@@ -250,7 +261,7 @@ class Match:
     def get_match(_id: int) -> Optional[Match]:
         if (data := match_resource.get_data(_id))["success"] is False:
             return None
-        return Match.parse_match(_id, data["data"])
+        return MatchController.parse_match(_id, data["data"])
 
     @staticmethod
     def __get_player_match_ids_page(
@@ -290,7 +301,7 @@ class Match:
         _id: int, _from: float, to: float = time.time()
     ) -> List[int]:
         page = 1
-        ids, epochs = Match.__get_player_match_ids_page(_id, page)
+        ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
 
         parsed_ids: List[int] = []
 
@@ -305,7 +316,7 @@ class Match:
         ):
             _logger.warning(len(parsed_ids))
             page += 1
-            ids, epochs = Match.__get_player_match_ids_page(_id, page)
+            ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
 
         return parsed_ids
 
@@ -314,7 +325,7 @@ class Match:
         _id: int, _from: float, to: float = time.time()
     ) -> List[int]:
         page = 1
-        ids, epochs = Match.__get_team_match_ids_page(_id, page)
+        ids, epochs = MatchController.__get_team_match_ids_page(_id, page)
 
         parsed_ids: List[int] = []
 
@@ -329,7 +340,7 @@ class Match:
         ):
             _logger.warning(len(parsed_ids))
             page += 1
-            ids, epochs = Match.__get_player_match_ids_page(_id, page)
+            ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
 
         return parsed_ids
 
@@ -337,7 +348,7 @@ class Match:
     def get_player_matches(
         _id: int, _from: float, to: float = time.time()
     ) -> List[Match]:
-        match_ids = Match.get_player_match_ids(_id, _from, to)
+        match_ids = MatchController.get_player_match_ids(_id, _from, to)
         # Thread get each one
         scraper = ThreadedMatchScraper(match_ids)
         matches = scraper.run()
@@ -347,7 +358,7 @@ class Match:
     def get_team_matches(
         _id: int, _from: float, to: float = time.time()
     ) -> List[Match]:
-        match_ids = Match.get_team_match_ids(_id, _from, to)
+        match_ids = MatchController.get_team_match_ids(_id, _from, to)
         scraper = ThreadedMatchScraper(match_ids)
         matches = scraper.run()
         return matches

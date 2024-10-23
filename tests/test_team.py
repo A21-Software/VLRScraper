@@ -1,8 +1,8 @@
 # type: ignore
 import pytest
 
-from vlrscraper.team import Team
-from vlrscraper.player import Player, PlayerStatus
+from vlrscraper.controllers import TeamController
+from vlrscraper.resources import Team, Player, PlayerStatus
 
 from .helpers import assert_players
 
@@ -87,7 +87,7 @@ def test_teamRepr():
 
 def test_getTeam(requests_regression):
     # Valid team
-    sen = Team.get_team(2)
+    sen = TeamController.get_team(2)
     assert sen is not None
     assert sen.get_id() == 2
     assert sen.get_name() == "Sentinels"
@@ -120,26 +120,28 @@ def test_getTeam(requests_regression):
     )
 
     # Invalid team
-    assert Team.get_team(-100) is None
-    assert Team.get_team("2") is None
+    assert TeamController.get_team(-100) is None
+    assert TeamController.get_team("2") is None
 
 
 def test_get_player_teams(requests_regression):
-    zekken_teams = Team.get_player_team_history(4004)
+    zekken_teams = TeamController.get_player_team_history(4004)
 
     # Check whole team history is loaded
     assert zekken_teams[0].is_same_team(
-        Team.from_player_page(2, "Sentinels", "https://owcdn.net/img/62875027c8e06.png")
+        TeamController.from_player_page(
+            2, "Sentinels", "https://owcdn.net/img/62875027c8e06.png"
+        )
     )
     assert zekken_teams[-1].is_same_team(
-        Team.from_player_page(
+        TeamController.from_player_page(
             1028, "Wichita Wolves", "https://owcdn.net/img/5fe45562b0491.png"
         )
     )
 
     # Check team with default logo
     assert zekken_teams[1].is_same_team(
-        Team.from_player_page(
+        TeamController.from_player_page(
             10963, "Team Zander", "https://vlr.gg/img/vlr/tmp/vlr.png"
         )
     )
