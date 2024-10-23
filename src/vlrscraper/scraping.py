@@ -93,11 +93,11 @@ class XpathParser:
     def get_href(self, xpath: str) -> str:
         """Gets an link href from a given XPATH string
 
-        Args:
-            xpath (str): the XPATH to find the link at.
+        :param xpath: The XPATH to find the link at
+        :type xpath: str
 
-        Returns:
-            Optional[str]: the data contained in the `href` tag of the `HtmlElement` at the XPATH, or None if the href tag cannot be located.
+        :return: The data contained in the href tag of the :class:`lxml.html.HtmlElement` at the XPATH, or "" if the href tag cannot be located
+        :rtype: str
         """
         if (element := self.get_element(xpath)) is None:
             return ""
@@ -167,12 +167,12 @@ def xpath(elem: str, root: str = "", **kwargs) -> str:
 
 def join(*xpath: str) -> str:
     """Create an xpath that is the combination of the xpaths provided
-    Performs a similar function to os.path.join()
+    Performs a similar function to `os.path.join()`
 
-    Args:
-        *xpath (list[str]): The xpaths or elements to combine
+    :param \*xpath: The xpaths or elements to combine
+    :type xpath: List[str]
 
-    Returns:
-        str: _description_
+    :return: The result of a join across all given xpaths
+    :rtype: str
     """
     return "//" + "//".join(map(lambda f: f[2:] if f.startswith("//") else f, xpath))
