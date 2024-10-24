@@ -175,6 +175,17 @@ class MatchController:
     def __parse_match_stats(
         players: List[int], stats: List[html.HtmlElement]
     ) -> dict[int, PlayerStats]:
+        """Parse the match stats on the given match page
+
+        :param players: The players to parse the stats for
+        :type players: List[int]
+
+        :param stats: A list of html.HtmlElement each representing a table row from the stat page
+        :type stats: List[html.HtmlElement]
+
+        :return: A dictionary mapping player IDs to PlayerStats objects
+        :rtype: dict[int, PlayerStats]
+        """
         if len(stats) % 12 != 0:
             _logger.warning(f"Wrong amount of stats passed ({len(stats)})")
             return {}
@@ -202,6 +213,17 @@ class MatchController:
 
     @staticmethod
     def parse_match(_id: int, data: bytes) -> Match:
+        """Parse a vlr.gg match page from the bytes returned by :func:`requests.get`
+
+        :param _id: The match ID
+        :type _id: int
+
+        :param data: The byte data of the match page
+        :type data: bytes
+
+        :return: The match data
+        :rtype: Match
+        """
         parser = XpathParser(data)
 
         match_player_ids = [
@@ -259,6 +281,14 @@ class MatchController:
 
     @staticmethod
     def get_match(_id: int) -> Optional[Match]:
+        """Scrape the data of a match given a valid vlr.gg match ID
+
+        :param _id: The ID of the match
+        :type _id: int
+
+        :return: The match data
+        :rtype: Optional[Match]
+        """
         if (data := match_resource.get_data(_id))["success"] is False:
             return None
         return MatchController.parse_match(_id, data["data"])
@@ -300,6 +330,20 @@ class MatchController:
     def get_player_match_ids(
         _id: int, _from: float, to: float = time.time()
     ) -> List[int]:
+        """Get a list of vlr.gg match IDs that a player has been a part of, within the given timeframe
+
+        :param _id: The vlr.gg ID of the player
+        :type _id: int
+
+        :param _from: The epoch to get the matches from
+        :type _from: float
+
+        :param to: The epoch to get matches to, defaults to time.time()
+        :type to: float, optional
+
+        :return: A list of match IDs of the matches that occurred between the two given timestamps
+        :rtype: List[Match]
+        """
         page = 1
         ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
 
@@ -324,6 +368,20 @@ class MatchController:
     def get_team_match_ids(
         _id: int, _from: float, to: float = time.time()
     ) -> List[int]:
+        """Get a list of vlr.gg match IDs that a team has been a part of, within the given timeframe
+
+        :param _id: The vlr.gg ID of the team
+        :type _id: int
+
+        :param _from: The epoch to get the matches from
+        :type _from: float
+
+        :param to: The epoch to get matches to, defaults to time.time()
+        :type to: float, optional
+
+        :return: A list of match IDs of the matches that occurred between the two given timestamps
+        :rtype: List[Match]
+        """
         page = 1
         ids, epochs = MatchController.__get_team_match_ids_page(_id, page)
 
@@ -350,7 +408,7 @@ class MatchController:
     ) -> List[Match]:
         """Get a player's valorant matches within the given timeframe
 
-        :param _id: The vlr.gg ID of the player 
+        :param _id: The vlr.gg ID of the player
         :type _id: int
 
         :param _from: The epoch to get the matches from
@@ -374,7 +432,7 @@ class MatchController:
     ) -> List[Match]:
         """Get a teams valorant matches within the given timeframe
 
-        :param _id: The vlr.gg ID of the team 
+        :param _id: The vlr.gg ID of the team
         :type _id: int
 
         :param _from: The epoch to get the matches from
