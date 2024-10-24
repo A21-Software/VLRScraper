@@ -8,17 +8,17 @@ from vlrscraper.logger import get_logger
 from vlrscraper.scraping import XpathParser, join, ThreadedMatchScraper
 from vlrscraper.resources import Player, PlayerStatus, Team, PlayerStats, Match
 from vlrscraper.vlr_resources import (
-    player_resource,
     team_resource,
     match_resource,
+    player_resource,
     player_match_resource,
 )
 from vlrscraper.utils import (
-    parse_first_last_name,
+    parse_stat,
     get_url_segment,
     resolve_vlr_image,
-    parse_stat,
     epoch_from_timestamp,
+    parse_first_last_name,
 )
 
 _logger = get_logger()
@@ -348,6 +348,20 @@ class MatchController:
     def get_player_matches(
         _id: int, _from: float, to: float = time.time()
     ) -> List[Match]:
+        """Get a player's valorant matches within the given timeframe
+
+        :param _id: The vlr.gg ID of the player 
+        :type _id: int
+
+        :param _from: The epoch to get the matches from
+        :type _from: float
+
+        :param to: The epoch to get matches to, defaults to time.time()
+        :type to: float, optional
+
+        :return: A list of matches that occurred between the two given timestamps
+        :rtype: List[Match]
+        """
         match_ids = MatchController.get_player_match_ids(_id, _from, to)
         # Thread get each one
         scraper = ThreadedMatchScraper(match_ids)
@@ -358,6 +372,20 @@ class MatchController:
     def get_team_matches(
         _id: int, _from: float, to: float = time.time()
     ) -> List[Match]:
+        """Get a teams valorant matches within the given timeframe
+
+        :param _id: The vlr.gg ID of the team 
+        :type _id: int
+
+        :param _from: The epoch to get the matches from
+        :type _from: float
+
+        :param to: The epoch to get matches to, defaults to time.time()
+        :type to: float, optional
+
+        :return: A list of matches that occurred between the two given timestamps
+        :rtype: List[Match]
+        """
         match_ids = MatchController.get_team_match_ids(_id, _from, to)
         scraper = ThreadedMatchScraper(match_ids)
         matches = scraper.run()
