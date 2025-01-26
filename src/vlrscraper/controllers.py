@@ -31,7 +31,13 @@ class PlayerController:
     def get_player(_id: int) -> Optional[Player]:
         """Scrape a player's data given a valid vlr.gg player ID
 
-        :param _id: The ID of the player on vlr.gg
+        .. code-block:: python
+
+            benjyfishy_data = get_player(29873)
+
+            get_player(-1) == None # True
+
+        :param _id: The ID of the player
         :type _id: int
 
         :return: The player data
@@ -64,6 +70,12 @@ class PlayerController:
     @staticmethod
     def get_players_from_team_page(parser: XpathParser, team: Team) -> List[Player]:
         """Scrape the player data from a team's vlr.gg page
+
+        .. code-block:: python
+
+            # Get all the EDG players from the champs 2024 grand final
+            edg_parser = team_resource.get_parser(378829)
+            edg_players = PlayerController.get_players_from_team_page(edg_parser, TeamController.from_parser(edg_parser))
 
         :param parser: The page's XPathParser
         :type parser: XpathParser
@@ -110,6 +122,8 @@ class PlayerController:
 
 
 class TeamController:
+    """Contains all methods relating to scraping Team data"""
+
     @staticmethod
     def get_team(_id: int) -> Optional[Team]:
         """Scrape the team data from vlr.gg given a valid team ID
@@ -139,6 +153,15 @@ class TeamController:
 
     @staticmethod
     def get_team_from_player_page(parser: XpathParser, index: int = 1) -> Team:
+        """_summary_
+
+        :param parser: _description_
+        :type parser: XpathParser
+        :param index: _description_, defaults to 1
+        :type index: int, optional
+        :return: _description_
+        :rtype: Team
+        """
         imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
         namepath = join(const.PLAYER_CURRENT_TEAM, "div[2]", "div[1]")[2:]
 
