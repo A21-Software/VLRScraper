@@ -176,7 +176,7 @@ class TeamController:
         return Team.from_player_page(team_id, team_name, team_image)
 
     @staticmethod
-    def get_player_team_history(_id: int) -> list[Team]:
+    def get_player_team_history(_id: int) -> List[Team]:
         """Get the team history of a player given their vlr.gg ID
 
         :param _id: The ID of the player
