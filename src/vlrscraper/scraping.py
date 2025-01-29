@@ -5,13 +5,19 @@ Implements:
     - `xpath`, a function that generates xpath strings based on the arguments passed
 """
 
-from typing import Optional, List, Union
+import time
+import requests
+
+from threading import Thread
+from typing import Optional, List, Union, Tuple
 
 from lxml import html
 from lxml.html import HtmlMixin, HtmlElement
 from lxml.etree import _Element
 
+from vlrscraper.resources import Match
 from vlrscraper.logger import get_logger
+from vlrscraper.utils import thread_over_data
 
 _logger = get_logger()
 
@@ -19,6 +25,9 @@ _logger = get_logger()
 class XpathParser:
     """Implements easier methods of parsing XPATH
     directly from data returned from a `requests.get()` call
+
+    :param data: The response data of the reqest to parse
+    :type data: bytes
     """
 
     def __init__(self, data: bytes) -> None:
@@ -93,11 +102,11 @@ class XpathParser:
     def get_href(self, xpath: str) -> str:
         """Gets an link href from a given XPATH string
 
-        Args:
-            xpath (str): the XPATH to find the link at.
+        :param xpath: The XPATH to find the link at
+        :type xpath: str
 
-        Returns:
-            Optional[str]: the data contained in the `href` tag of the `HtmlElement` at the XPATH, or None if the href tag cannot be located.
+        :return: The data contained in the href tag of the :class:`lxml.html.HtmlElement` at the XPATH, or "" if the href tag cannot be located
+        :rtype: str
         """
         if (element := self.get_element(xpath)) is None:
             return ""
@@ -167,12 +176,63 @@ def xpath(elem: str, root: str = "", **kwargs) -> str:
 
 def join(*xpath: str) -> str:
     """Create an xpath that is the combination of the xpaths provided
-    Performs a similar function to os.path.join()
+    Performs a similar function to `os.path.join()`
 
-    Args:
-        *xpath (list[str]): The xpaths or elements to combine
+    :param *xpath: The xpaths or elements to combine
+    :type xpath: List[str]
 
-    Returns:
-        str: _description_
+    :return: The result of a join across all given xpaths
+    :rtype: str
     """
     return "//" + "//".join(map(lambda f: f[2:] if f.startswith("//") else f, xpath))
+
+
+class ThreadedMatchScraper:
+    def __init__(self, ids: List[int]) -> None:
+        self.__ids: List[int] = ids
+        self.__responses: List[Tuple[int, bytes]] = []
+        self.__data: List[Match] = []
+        self.__scraping = False
+
+    def fetch_single_url(self, _id: int) -> None:
+        response = requests.get(f"https://vlr.gg/{_id}")
+        if response.status_code == 200:
+            self.__responses.append((_id, response.content))
+        else:
+            _logger.warning(
+                f"Could not fetch data for match {_id}: {response.status_code}"
+            )
+
+    def fetch_urls(self) -> None:
+        _logger.info(f"Began fetch URL thread for {self}")
+        """ for _id in self.__ids:
+            response = requests.get(f"https://vlr.gg/{_id}")
+            if response.status_code == 200:
+                self.__responses.append((_id, response.content))
+            else:
+                _logger.warning(f"Could not fetch data for match {_id}: {response.status_code}") """
+        thread_over_data(self.__ids, self.fetch_single_url, 2)
+        self.__scraping = False
+
+    def parse_data(self) -> None:
+        _logger.info(f"Begain data parsing thread for {self}")
+        from vlrscraper.controllers import MatchController
+
+        while self.__scraping or self.__responses:
+            if not self.__responses:
+                time.sleep(0.2)
+                continue
+            _id, data = self.__responses.pop(0)
+            self.__data.append(MatchController.parse_match(_id, data))
+
+    def run(self) -> List[Match]:
+        fetch_thread = Thread(target=self.fetch_urls)
+        parse_thread = Thread(target=self.parse_data)
+
+        self.__scraping = True
+
+        fetch_thread.start()
+        parse_thread.start()
+        parse_thread.join()
+
+        return sorted(self.__data, key=lambda m: m.get_date(), reverse=True)

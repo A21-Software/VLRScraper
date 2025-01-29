@@ -1,8 +1,8 @@
 # type: ignore
 import pytest
 
-from vlrscraper.player import Player, PlayerStatus
-from vlrscraper.team import Team
+from vlrscraper.controllers import PlayerController
+from vlrscraper.resources import Player, PlayerStatus, Team
 
 
 def test_player_init():
@@ -146,7 +146,7 @@ def test_player_from():
 
 def test_player_get(requests_regression):
     # Average player
-    benjy = Player.get_player(29873)
+    benjy = PlayerController.get_player(29873)
     assert benjy is not None
     assert benjy.get_id() == 29873
     assert benjy.get_display_name() == "benjyfishy"
@@ -160,7 +160,7 @@ def test_player_get(requests_regression):
     assert benjy.get_status() == PlayerStatus.ACTIVE
 
     # Player with non-latin characters in name
-    crappy = Player.get_player(31207)
+    crappy = PlayerController.get_player(31207)
     assert crappy is not None
     assert crappy.get_id() == 31207
     assert crappy.get_display_name() == "Carpe"
@@ -172,9 +172,9 @@ def test_player_get(requests_regression):
     assert crappy.get_status() == PlayerStatus.ACTIVE
 
     # Bad player very bad
-    assert Player.get_player(None) is None
-    assert Player.get_player(31207.0) is None
-    assert Player.get_player("1000") is None
+    assert PlayerController.get_player(None) is None
+    assert PlayerController.get_player(31207.0) is None
+    assert PlayerController.get_player("1000") is None
 
     # Inactive player
-    assert Player.get_player(45).get_status() == PlayerStatus.INACTIVE
+    assert PlayerController.get_player(45).get_status() == PlayerStatus.INACTIVE
