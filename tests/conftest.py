@@ -41,7 +41,7 @@ def requests_get_patch(original_get: Callable):
     def patch(url):
         result = original_get(url)
         if (regression := get_regression(url)) is not None:
-            get_logger().debug(f"Using regression stored for {url}")
+            get_logger().warning(f"Using regression stored for {url}")
             result.status_code = regression["status-code"]
             result._content = regression["content"].encode("utf-8")
         else:

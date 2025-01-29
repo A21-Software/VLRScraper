@@ -188,7 +188,7 @@ def join(*xpath: str) -> str:
 
 
 class ThreadedMatchScraper:
-    def __init__(self, ids: list[int]) -> None:
+    def __init__(self, ids: List[int]) -> None:
         self.__ids: List[int] = ids
         self.__responses: List[Tuple[int, bytes]] = []
         self.__data: List[Match] = []
@@ -225,7 +225,7 @@ class ThreadedMatchScraper:
             _id, data = self.__responses.pop(0)
             self.__data.append(MatchController.parse_match(_id, data))
 
-    def run(self) -> list[Match]:
+    def run(self) -> List[Match]:
         fetch_thread = Thread(target=self.fetch_urls)
         parse_thread = Thread(target=self.parse_data)
 

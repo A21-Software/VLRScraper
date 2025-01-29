@@ -48,13 +48,13 @@ def test_match_eq():
 
 
 def test_match_player_get_ids(requests_regression):
-    m = MatchController.get_player_match_ids(4004, previous_epoch(days=30))
+    m = MatchController.get_player_match_ids(4004, 1725224060.4716666, 1730407900.8408132)
     assert m == [413228, 413189, 412065, 408415, 408414]
 
     assert (
         len(
             MatchController.get_player_match_ids(
-                4004, previous_epoch(days=60), previous_epoch(days=30)
+                4004, 1725224060.4716666, 1728680437.5714862
             )
         )
         == 3
@@ -63,7 +63,7 @@ def test_match_player_get_ids(requests_regression):
     assert (
         len(
             MatchController.get_player_match_ids(
-                4004, previous_epoch(days=30), previous_epoch(days=30)
+                4004, 1730407900.8408132, 1730407900.8408132
             )
         )
         == 0
@@ -71,13 +71,13 @@ def test_match_player_get_ids(requests_regression):
 
 
 def test_match_team_get_ids(requests_regression):
-    m = MatchController.get_team_match_ids(2, previous_epoch(days=30))
+    m = MatchController.get_team_match_ids(2, 1725224060.4716666, 1730407900.8408132)
     assert m == [412065, 408415, 408414]
 
     assert (
         len(
             MatchController.get_team_match_ids(
-                2, previous_epoch(days=60), previous_epoch(days=30)
+                2, 1722632640.3587997, 1725224060.4716666
             )
         )
         == 2
@@ -93,7 +93,7 @@ def test_match_team_get_ids(requests_regression):
 
 
 def test_match_player_get(requests_regression):
-    matches = MatchController.get_player_matches(4004, previous_epoch(days=30))
+    matches = MatchController.get_player_matches(4004, 1725224060.4716666, 1730407900.8408132)
     assert len(matches) == 5
     assert matches[3].get_player_stats(729) == PlayerStats(
         1.2, 245, 39, 30, 21, 9, 78, 146, 25, 9, 4, 5

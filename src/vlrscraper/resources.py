@@ -585,6 +585,9 @@ class Match:
         :return: True if the matches are the same else False
         """
 
+        if not isinstance(other, Match):
+            return False
+
         teams_are_equal = all(
             team.is_same_team(other.get_teams()[i])
             and team.has_same_roster(other.get_teams()[i])
@@ -592,8 +595,7 @@ class Match:
         )
 
         return (
-            isinstance(other, Match)
-            and self.get_id() == other.get_id()
+            self.get_id() == other.get_id()
             and self.get_full_name() == other.get_full_name()
             and self.get_date() == other.get_date()
             and teams_are_equal

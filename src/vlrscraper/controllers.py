@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
 import time
 from lxml import html
@@ -174,7 +174,7 @@ class TeamController:
         return Team.from_player_page(team_id, team_name, team_image)
 
     @staticmethod
-    def get_player_team_history(_id: int) -> list[Team]:
+    def get_player_team_history(_id: int) -> List[Team]:
         if (parser := player_resource.get_parser(_id)) is None:
             return []
 
@@ -197,7 +197,7 @@ class MatchController:
     @staticmethod
     def __parse_match_stats(
         players: List[int], stats: List[html.HtmlElement]
-    ) -> dict[int, PlayerStats]:
+    ) -> Dict[int, PlayerStats]:
         """Parse the match stats on the given match page
 
         :param players: The players to parse the stats for
@@ -321,6 +321,7 @@ class MatchController:
         _id: int, page: int = 1
     ) -> Tuple[List[int], List[float]]:
         if (parser := player_match_resource(page).get_parser(_id)) is None:
+            get_logger().warning(f"Could not get player match page for player {_id}")
             return ([], [])
         match_epochs = [
             epoch_from_timestamp(f"{elem} -0400", "%Y/%m/%d%I:%M %p %z")
@@ -369,6 +370,7 @@ class MatchController:
         """
         page = 1
         ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
+        _logger.warning(ids)
 
         parsed_ids: List[int] = []
 
@@ -384,7 +386,6 @@ class MatchController:
             _logger.warning(len(parsed_ids))
             page += 1
             ids, epochs = MatchController.__get_player_match_ids_page(_id, page)
-
         return parsed_ids
 
     @staticmethod
