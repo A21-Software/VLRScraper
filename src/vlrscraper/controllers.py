@@ -153,13 +153,15 @@ class TeamController:
 
     @staticmethod
     def get_team_from_player_page(parser: XpathParser, index: int = 1) -> Team:
-        """_summary_
+        """Scrapes a team's data from a player's page
 
-        :param parser: _description_
+        :param parser: An XpathParser representing the player's vlr.gg page
         :type parser: XpathParser
+
         :param index: _description_, defaults to 1
         :type index: int, optional
-        :return: _description_
+
+        :return: The team data
         :rtype: Team
         """
         imgpath = join(const.PLAYER_CURRENT_TEAM, "img")[2:]
@@ -174,7 +176,15 @@ class TeamController:
         return Team.from_player_page(team_id, team_name, team_image)
 
     @staticmethod
-    def get_player_team_history(_id: int) -> List[Team]:
+    def get_player_team_history(_id: int) -> list[Team]:
+        """Get the team history of a player given their vlr.gg ID
+
+        :param _id: The ID of the player
+        :type _id: int
+
+        :return: A list of teams that the player has been a part of
+        :rtype: list[Team]
+        """
         if (parser := player_resource.get_parser(_id)) is None:
             return []
 
@@ -194,6 +204,8 @@ class TeamController:
 
 
 class MatchController:
+    """Contains all methods relating to scraping match data
+    """
     @staticmethod
     def __parse_match_stats(
         players: List[int], stats: List[html.HtmlElement]
