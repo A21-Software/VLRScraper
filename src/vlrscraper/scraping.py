@@ -178,7 +178,7 @@ def join(*xpath: str) -> str:
     """Create an xpath that is the combination of the xpaths provided
     Performs a similar function to `os.path.join()`
 
-    :param \*xpath: The xpaths or elements to combine
+    :param *xpath: The xpaths or elements to combine
     :type xpath: List[str]
 
     :return: The result of a join across all given xpaths

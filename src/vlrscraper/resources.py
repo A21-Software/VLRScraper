@@ -350,21 +350,20 @@ class Team:
         :rtype: bool
         """
 
+        # no I don't like doing this many returns, yes pyright is forcing my hand :D
         if not isinstance(other, Team):
             return False
 
         mR, oR = self.get_roster(), other.get_roster()
+        if mR is None is oR:
+            return True
 
-        rosters_are_empty = mR is None is oR
-        roster_is_empty = mR is None or oR is None
-        rosters_are_same = len(mR) == len(oR) and all(
+        if mR is None or oR is None:
+            return False
+
+
+        return len(mR) == len(oR) and all(
             [p.is_same_player(oR[i])] for i, p in enumerate(mR)
-        )
-
-        return (
-            isinstance(other, Team)
-            and rosters_are_empty
-            or (not roster_is_empty and rosters_are_same)
         )
 
     def get_id(self) -> int:

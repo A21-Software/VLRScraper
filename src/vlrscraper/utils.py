@@ -55,7 +55,7 @@ def parse_stat(stat: Optional[str], rtype: Type) -> Optional[T]:
     return rtype(stat.replace("%", "").strip())
 
 
-def get_url_segment(url: str, index: int, rtype: type = str) -> T:
+def get_url_segment(url: str, index: int, rtype: Type[T]) -> T:
     """Isolate the segment of the given url at the index supplied\n
     The `rtype` parameter can be specified to automatically cast the return value,
     if you are trying to extract an integer ID for example
@@ -116,7 +116,7 @@ def previous_epoch(
     return time.time() - total_loss
 
 
-def test_performance(func: Callable) -> None:
+def test_performance(func: Callable) -> Callable:
     """Decorator to test the performance of a function by timing it and logging the result to the
     logger's info stream
 
