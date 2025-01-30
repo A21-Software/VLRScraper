@@ -11,6 +11,7 @@ from vlrscraper.vlr_resources import (
     team_resource,
     match_resource,
     player_resource,
+    upcoming_resource,
     player_match_resource,
 )
 from vlrscraper.utils import (
@@ -327,6 +328,23 @@ class MatchController:
         if (data := match_resource.get_data(_id))["success"] is False:
             return None
         return MatchController.parse_match(_id, data["data"])
+
+    @staticmethod
+    def get_upcoming() -> List[Match]:
+        if (parser := upcoming_resource.get_parser(1)) is None:
+            get_logger().warning("Could not fetch upcoming matches")
+
+        teams = parser.get_text_many(const.UPCOMING_MATCH_VS)
+
+        match_teams = [(teams[i], teams[i+1]) for i in range(0, len(teams), 2)]
+        match_ids = [get_url_segment(url, 1, int) for url in parser.get_elements(const.UPCOMING_MATCH_IDS, "href")]
+        match_events = parser.get_text_many(const.UPCOMING_MATCH_EVENTS)
+        match_names = parser.get_text_many(const.UPCOMING_MATCH_NAMES)
+
+        matches = [Match(match_ids[i], match_names[i], match_events[i], -1, (Team.from_player_page(1, match_teams[i][0], ""), Team.from_player_page(1, match_teams[i][1], ""))) for i in range(len(match_teams))]
+        print(matches[0])
+        return matches
+
 
     @staticmethod
     def __get_player_match_ids_page(

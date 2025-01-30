@@ -142,3 +142,7 @@ def test_match_get():
 
     assert MatchController.get_match(0) is None
     assert MatchController.get_match("3490") is None
+
+def test_match_get_upcoming(requests_regression):
+    m = MatchController.get_upcoming()
+    assert m == []

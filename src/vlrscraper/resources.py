@@ -293,7 +293,7 @@ class Team:
     ) -> None:
         """Team constructor"""
         if not isinstance(_id, int) or _id <= 0:
-            raise ValueError("Player ID must be an integer {0 < ID}")
+            raise ValueError("Team ID must be an integer {0 < ID}")
 
         self.__id = _id
         self.__name = name
@@ -685,3 +685,6 @@ class Match:
         :type stats: PlayerStats
         """
         self.__stats.update({player: stats})
+
+    def __repr__(self) -> str:
+        return f"{self.get_full_name()}, {' vs '.join([team.get_name() for team in self.get_teams()])}"

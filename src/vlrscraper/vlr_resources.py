@@ -9,6 +9,7 @@ player_resource = Resource(vlr_url("player/<res_id>"))
 player_teams_resource = Resource(vlr_url("player/matches/<res_id>"))
 team_resource = Resource(vlr_url("team/<res_id>"))
 match_resource = Resource(vlr_url("<res_id>"))
+upcoming_resource = Resource(vlr_url("matches/?page=<res_id>"))
 
 
 def player_match_resource(page: int) -> Resource:

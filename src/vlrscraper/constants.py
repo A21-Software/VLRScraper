@@ -40,3 +40,8 @@ MATCH_DATE = "//div[@class='moment-tz-convert'][1]"
 MATCH_PLAYER_TABLE = "//div[@class='vm-stats-game mod-active']//tbody//tr//td//a"
 MATCH_PLAYER_NAMES = join(MATCH_PLAYER_TABLE, "div[1]")
 MATCH_PLAYER_STATS = "//div[@class='vm-stats-game mod-active']//tbody//tr//td//span[contains(@class, 'mod-both')]"
+
+UPCOMING_MATCH_IDS = "//a//div[text()[contains(.,'Champions Tour')]]/.."
+UPCOMING_MATCH_VS = "//a//div[text()[contains(.,'Champions Tour')]]/..//div[contains(@class, 'match-item-vs-team-name')]"
+UPCOMING_MATCH_NAMES = "//a//div[text()[contains(.,'Champions Tour')]]/..//div[contains(@class, 'match-item-event-series')]"
+UPCOMING_MATCH_EVENTS = "//a//div[text()[contains(.,'Champions Tour')]]/..//div[contains(@class, 'match-item-event')]"
