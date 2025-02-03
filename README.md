@@ -9,10 +9,14 @@ need to look at are `vlrscraper.match`, `vlrscraper.team` and `vlrscraper.player
 
 ### Getting Match Data
 
-Getting a matches data from a match ID is as simple as
+To get a matches data by its vlr match ID, use
 ```
 vlrscraper.match.get_match(vlr_id)
 ```
+
+<details>
+skibidi toilet
+</details>
 
 Getting a number of matches from their match IDs can be done by using
 ```
