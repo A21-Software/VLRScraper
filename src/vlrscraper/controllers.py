@@ -72,12 +72,6 @@ class PlayerController:
     def get_players_from_team_page(parser: XpathParser, team: Team) -> List[Player]:
         """Scrape the player data from a team's vlr.gg page
 
-        .. code-block:: python
-
-            # Get all the EDG players from the champs 2024 grand final
-            edg_parser = team_resource.get_parser(378829)
-            edg_players = PlayerController.get_players_from_team_page(edg_parser, TeamController.from_parser(edg_parser))
-
         :param parser: The page's XPathParser
         :type parser: XpathParser
 
@@ -86,6 +80,12 @@ class PlayerController:
 
         :return: A list of players that are present on the team vlr.gg page
         :rtype: List[Player]
+
+        .. code-block:: python
+
+            # Get all the EDG players from the champs 2024 grand final
+            edg_parser = team_resource.get_parser(378829)
+            edg_players = PlayerController.get_players_from_team_page(edg_parser, TeamController.from_parser(edg_parser))
         """
         player_ids = [
             get_url_segment(str(url), 2, rtype=int)
@@ -229,26 +229,13 @@ class MatchController:
         for i, player in enumerate(players):
             player_stats.update(
                 {
-                    player: PlayerStats(
-                        parse_stat(stats[i * 12 + 0].text, rtype=float),
-                        parse_stat(stats[i * 12 + 1].text, rtype=int),
-                        parse_stat(stats[i * 12 + 2].text, rtype=int),
-                        parse_stat(stats[i * 12 + 3].text, rtype=int),
-                        parse_stat(stats[i * 12 + 4].text, rtype=int),
-                        parse_stat(stats[i * 12 + 5].text, rtype=int),
-                        parse_stat(stats[i * 12 + 6].text, rtype=int),
-                        parse_stat(stats[i * 12 + 7].text, rtype=int),
-                        parse_stat(stats[i * 12 + 8].text, rtype=int),
-                        parse_stat(stats[i * 12 + 9].text, rtype=int),
-                        parse_stat(stats[i * 12 + 10].text, rtype=int),
-                        parse_stat(stats[i * 12 + 11].text, rtype=int),
-                    )
+                    player: PlayerStats(*[parse_stat(stats[i * 12 + j].text, rtype=float if j==0 else int) for j in range(0, 12)])
                 }
             )
         return player_stats
 
     @staticmethod
-    def parse_match(_id: int, data: bytes) -> Match:
+    def parse_match(_id: int, data: bytes) -> Dict:
         """Parse a vlr.gg match page from the bytes returned by :func:`requests.get`
 
         :param _id: The match ID
@@ -276,58 +263,26 @@ class MatchController:
         team_links = parser.get_elements(const.MATCH_TEAMS, "href")
         team_names = parser.get_text_many(const.MATCH_TEAM_NAMES)
         team_logos = parser.get_elements(const.MATCH_TEAM_LOGOS, "src")
-        _logger.debug(team_logos)
 
-        teams = (
-            Team.from_match_page(
-                get_url_segment(str(team_links[0]), 2, int),
-                team_names[0],
-                "",
-                f"https:{team_logos[0]}",
-                [
-                    Player.from_match_page(match_player_ids[pl], match_player_names[pl])
-                    for pl in range(0, 5)
-                ],
-            ),
-            Team.from_match_page(
-                get_url_segment(str(team_links[1]), 2, int),
-                team_names[1],
-                "",
-                f"https:{team_logos[1]}",
-                [
-                    Player.from_match_page(match_player_ids[pl], match_player_names[pl])
-                    for pl in range(1, 5)
-                ],
-            ),
-        )
-
-        match = Match(
-            _id,
-            parser.get_text(const.MATCH_NAME),
-            parser.get_text(const.MATCH_EVENT_NAME),
-            epoch_from_timestamp(
-                f'{parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0]} -0400',
-                "%Y-%m-%d %H:%M:%S %z",
-            ),
-            teams,
-        )
-        match.set_stats(match_stats_parsed)
-
-        return match
-
-    @staticmethod
-    def get_match(_id: int) -> Optional[Match]:
-        """Scrape the data of a match given a valid vlr.gg match ID
-
-        :param _id: The ID of the match
-        :type _id: int
-
-        :return: The match data
-        :rtype: Optional[Match]
-        """
-        if (data := match_resource.get_data(_id))["success"] is False:
-            return None
-        return MatchController.parse_match(_id, data["data"])
+        return {
+            "players": {_id: {"vlr-id": _id, "name": match_player_names[i]} for i, _id in enumerate(match_player_ids)},
+            "teams": {(_id := get_url_segment(str(team_links[i]), 2, int)): {
+                        "vlr-id": _id,
+                        "name": name,
+                        "link": "vlr.gg" + team_links[i],
+                        "logo": resolve_vlr_image(team_logos[i]),
+                        "roster": [player_id for player_id in match_player_ids[i:i+5]]
+                    } for i, name in enumerate(team_names)},
+            "match": {
+                "name": parser.get_text(const.MATCH_NAME),
+                "event": parser.get_text(const.MATCH_EVENT_NAME),
+                "timestamp": epoch_from_timestamp(
+                    f'{parser.get_elements(const.MATCH_DATE, "data-utc-ts")[0]} -0400',
+                    "%Y-%m-%d %H:%M:%S %z",
+                    ),
+                "stats": {k: v.dict() for k, v in match_stats_parsed.items()}
+            }
+        }
 
     @staticmethod
     def get_upcoming() -> List[Match]:
