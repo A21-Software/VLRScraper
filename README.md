@@ -27,5 +27,7 @@ Getting a player's data from an ID can be done using
 ```
 vlrscraper.player.get_player(vlr_id)
 ```
-this gets a player's current team, name, IGN, photo. To get team data relating to players, see #[###Getting Team Data].
+this gets a player's current team, name, IGN, photo. To get team data relating to players, see [Getting Team Data](#getting-team-data).
 For getting match data relating to a specific player, see [Getting Match Data](#getting-match-data)
+
+### Getting Team Data
