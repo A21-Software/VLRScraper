@@ -2,12 +2,12 @@
 ![quality](https://github.com/A21-Software/VLRScraper/actions/workflows/quality.yml/badge.svg)
 ![pypi](https://img.shields.io/pypi/v/vlrscraper)
 
-### General Usage
+# General Usage
 
 If you don't care about the inner workings of the module and just want to use it to get JSON data from vlr.gg, all you
 need to look at are `vlrscraper.match`, `vlrscraper.team` and `vlrscraper.player`.
 
-###### Getting Matches
+### Getting Matches
 
 Getting a matches data from a match ID is as simple as
 ```
