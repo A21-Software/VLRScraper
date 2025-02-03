@@ -25,7 +25,7 @@ vlrscraper.match.get_match(vlr_id)
     "name": match_name,
     "event": match_event,
     "timestamp": match_epoch,
-    "stats: match_stats
+    "stats": match_stats
   }
   }
 }
