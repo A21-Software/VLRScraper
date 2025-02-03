@@ -16,6 +16,7 @@ vlrscraper.match.get_match(vlr_id)
 
 <details>
 <summary>Match Format</summary>
+  
 ```python
 {vlr_id: {
   "teams": {team_id: team_data, ...},
