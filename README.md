@@ -9,6 +9,7 @@ need to look at are `vlrscraper.match`, `vlrscraper.team` and `vlrscraper.player
 
 ### Getting Match Data
 
+##### Single Matches
 To get a matches data by its vlr match ID, use
 ```
 vlrscraper.match.get_match(vlr_id)
@@ -31,12 +32,19 @@ vlrscraper.match.get_match(vlr_id)
 ```
 </details>
 
+##### Multiple matches at once
 Getting a number of matches from their match IDs can be done by using
 ```
 vlrscraper.match.get_matches(vlr_ids)
 ```
 
 this uses a threaded match scraper to scrape in parallel. I'll add options to configure this soon
+##### Upcoming matches
+
+To get upcoming matches (currently only VCT matches supported), use
+```
+vlrscraper.match.get_upcoming(up_to)
+```
 
 ### Getting Player Data
 
