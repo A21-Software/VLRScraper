@@ -16,9 +16,19 @@ vlrscraper.match.get_match(vlr_id)
 
 <details>
 <summary>Match Format</summary>
+  ```
 {vlr_id: {
+  "teams": {team_id: team_data, ...},
+  "players": {player_id: player_data, ...},
+  "match": {
+    "name": match_name,
+    "event": match_event,
+    "timestamp": match_epoch,
+    "stats: match_stats
+  }
   }
 }
+  ```
 </details>
 
 Getting a number of matches from their match IDs can be done by using
