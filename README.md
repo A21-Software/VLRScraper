@@ -14,9 +14,12 @@ To get a matches data by its vlr match ID, use
 vlrscraper.match.get_match(vlr_id)
 ```
 
-<Data Format>
-
-</Data Format>
+<details>
+<summary>Match Format</summary>
+{vlr_id: {
+  }
+}
+</details>
 
 Getting a number of matches from their match IDs can be done by using
 ```
