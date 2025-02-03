@@ -27,8 +27,7 @@ vlrscraper.match.get_match(vlr_id)
     "timestamp": match_epoch,
     "stats": match_stats
   }
-  }
-}
+}}
 ```
 </details>
 
