@@ -15,7 +15,7 @@ vlrscraper.match.get_match(vlr_id)
 ```
 
 <details>
-<summary>Match Format</summary>
+<summary>Response Format</summary>
   
 ```python
 {vlr_id: {
